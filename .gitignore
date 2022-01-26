@@ -16,5 +16,6 @@
 
 # Various
 
-react-user-interface/node_modules/*
+user-interface/node_modules/*
 settings/.db-settings.json
+settings/.gin-settings.json
