@@ -17,4 +17,4 @@
 # Various
 
 react-user-interface/node_modules/*
-settings/
+settings/.db-settings.json
