@@ -17,9 +17,9 @@
 # Various
 
 user-interface/node_modules/*
-settings/.db-settings.json
-settings/.gin-settings.json
-settings/.mail-settings.json
+settings/db-settings.json
+settings/gin-settings.json
+settings/mail-settings.json
 public/js/app.js*
 public/css/app.css*
 public/storage/image/*.png

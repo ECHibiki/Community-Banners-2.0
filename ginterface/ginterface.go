@@ -22,7 +22,7 @@ var gin_settings GinSettings
 func Init(port string){
   fmt.Println("\nGin Interface initialization...")
 
-  setting_json_bytes, err := ioutil.ReadFile("./settings/.gin-settings.json")
+  setting_json_bytes, err := ioutil.ReadFile("./settings/gin-settings.json")
   if err != nil{
     panic(err)
   }

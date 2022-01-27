@@ -23,7 +23,7 @@ var last_sent_mail int64
 
 func Init(){
   fmt.Println("\nMailer initialization...")
-  setting_json_bytes, err := ioutil.ReadFile("./settings/.mail-settings.json")
+  setting_json_bytes, err := ioutil.ReadFile("./settings/mail-settings.json")
   if err != nil{
     panic(err)
   }
@@ -71,7 +71,7 @@ func SendEmailToAll(mail_body string , mail_title string) ( string ){
 
 func test(){
   // Get the template
-  params := map[string]interface{}{
+  params := map[string]string{
     "time": time.Now().Format(time.UnixDate) + " - UnixDate" ,
     "name": "test-name" ,
     "url": "https://art.kissu.moe/storage/image/nOPdjYNHKdr2BVvIVwhGpt1FI6aH2X5stqMV6D7p.gif" ,

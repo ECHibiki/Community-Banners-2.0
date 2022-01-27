@@ -49,7 +49,7 @@ var db_settings DBSettings
 func Init(){
     fmt.Println("\nDatabase connection initialization...")
 
-    setting_json_bytes, err := ioutil.ReadFile("./settings/.db-settings.json")
+    setting_json_bytes, err := ioutil.ReadFile("./settings/db-settings.json")
     if err != nil{
       panic(err)
     }
@@ -60,6 +60,7 @@ func Init(){
     fmt.Println("...Database connection initialized")
 }
 
+// golang auto sanitizes
 func Query(request string , parameters []interface{}) ([]map[string]string, error){
   // get similar entries of base thread id
    query_str := fmt.Sprintf(request, parameters...)
