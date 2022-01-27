@@ -1,0 +1,13 @@
+<h2>New Banner @ {{ time }}</h2>
+<p style="color:green">Name:  {{ name }}</p><br/>
+<p style="color:blue">URL: {{url}}</p>
+<br/>
+Banner:<br/>
+This should be BASE64: 
+<img src="{{ fname }}">
+{% if err %}
+  <hr/>
+  <p>Previous Send Errors: <pre>{{ err }}</pre>
+{% endif %}
+<hr/>
+<small>Community Banners 2.0 - Kissu.moe/Verniy 2022</small>

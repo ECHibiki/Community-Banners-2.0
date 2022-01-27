@@ -28,6 +28,7 @@ func Init(port string){
   }
   json.Unmarshal(setting_json_bytes, &gin_settings)
 
+  // NGINX handles statics such as .html, .js, .css and image media
   gin_engine = gin.Default()
   {
     gin_engine.GET("/banner", controllers.GenerateAdPage)

@@ -19,6 +19,10 @@
 user-interface/node_modules/*
 settings/.db-settings.json
 settings/.gin-settings.json
-public/js/app.js
-public/css/app.css
-public/storage/*.jpg
+settings/.mail-settings.json
+public/js/app.js*
+public/css/app.css*
+public/storage/image/*.png
+public/storage/image/*.jpg
+public/storage/image/*.jpeg
+public/storage/image/*.gif
