@@ -34,6 +34,7 @@ type Mod struct {
   Name string
 }
 type Ad struct {
+  Id int32
   Name string
   URI string
   URL string

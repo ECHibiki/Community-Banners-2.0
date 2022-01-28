@@ -1,0 +1,6 @@
+{
+  "RedirectDomain":"localhost",
+  "AccountInterval": 60,
+  "AttemptInterval": 60,
+  "MaxAttempts": 30,
+}

@@ -39,8 +39,8 @@ func Init(port string){
       public_group.GET("banner", controllers.GenerateAdJSON)
       public_group.GET("all", controllers.GetLimitedInfo)
       public_group.POST("create", controllers.CreateNewUser)
+      // public_group.POST("create", controllers.RejectUserCreation)
       public_group.POST("login", controllers.LoginUser)
-      public_group.POST("mod/login", controllers.LoginMod)
     }
 
     logged_group := gin_engine.Group("/api/")

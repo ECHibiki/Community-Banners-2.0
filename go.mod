@@ -9,5 +9,6 @@ require (
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/shopspring/decimal v1.3.1 // indirect
 	github.com/tyler-sommer/stick v1.0.4
+	golang.org/x/crypto v0.0.0-20220126234351-aa10faf2a1f8
 	gopkg.in/dgrijalva/jwt-go.v3 v3.2.0 // indirect
 )
