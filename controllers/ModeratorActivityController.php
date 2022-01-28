@@ -17,12 +17,6 @@ class ModeratorActivityController extends Controller
 		$this->middleware(['mod:api']);
 	}
 
-	public static function getAllInfo(){
-		$data = (array)ModeratorActivityController::GetAllEntries();
-		$data = array_reverse(array_pop($data));
-		return json_encode($data);
-	}
-
 	public function banUser(Request $request){
 		$request->validate([
 			"target"=>"required|string",
@@ -66,10 +60,6 @@ class ModeratorActivityController extends Controller
 		ModeratorActivityController::removeIndividualBannerFromJSON($name, $uri, $request->input("url"));
 		ModeratorActivityController::removeIndividualBannerFromDB($uri);
 		return response(json_encode(["log"=>"$name's image was pruned"]), 200);
-	}
-
-	public static function GetAllEntries(){
-		return DB::table('ads')->leftJoin('bans', 'ads.fk_name', '=', 'bans.fk_name')->select('ads.fk_name', 'url', 'uri', 'bans.hardban', 'size', 'clicks')->orderBy('ads.created_at', 'ASC')->get();
 	}
 
 	public function createNewBan($target, $hard){

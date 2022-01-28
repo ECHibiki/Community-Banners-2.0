@@ -58,6 +58,17 @@ func checkAuthentication(name string , pass string) bool{
   return pass_err == nil
 }
 
+func checkIsMod(name string){
+  mod_get , err := bannerdb.Query(`
+    SELECT name FROM mods
+    WHERE fk_name = ?
+  `, []interface{}{name})
+  if err != nil{
+    panic(err)
+  }
+  return len(mod_get) > 0
+}
+
 func checkHardBanned(name string) bool{
   ban_get , err := bannerdb.Query(`
     SELECT fk_name FROM bans

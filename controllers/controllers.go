@@ -19,6 +19,7 @@ type ControllerSettings struct{
   AccountInterval int64
   AttemptInterval int64
   MaxAttempts int
+  PublicPath string
 }
 
 var controller_settings ControllerSettings
@@ -95,7 +96,7 @@ func RedirectSiteRequest(c *gin.Context){
 //File: UserCreationController
 func CreateNewUser(c *gin.Context){
   ip := c.ClientIP()
-  name := getParam(c, "name")
+  name := c.PostForm("name")
   if len(name) > 30 {
     c.JSON( 401 , gin.H{"error": "Name should not be longer than 30 characters"});
     return
@@ -104,8 +105,8 @@ func CreateNewUser(c *gin.Context){
     c.JSON( 401 , gin.H{"error": "Insert a name"});
     return
   }
-  pass := getParam(c, "pass")
-  pass_confirm := getParam(c, "pass_conf")
+  pass := c.PostForm("pass")
+  pass_confirm := c.PostForm("pass_conf")
   if pass != pass_confirm{
     c.JSON( 401 , gin.H{"error": "Passwords do not match"});
     return
@@ -136,12 +137,12 @@ func RejectUserCreation(c *gin.Context){
 
 //File: UserSignInController
 func LoginUser(c *gin.Context){
-  name := getParam(c, "name")
+  name := c.PostForm("name")
   if name == ""{
     c.JSON( 401 , gin.H{"error": "Insert a name"});
     return
   }
-  pass := getParam(c, "pass")
+  pass := c.PostForm("pass")
   if pass == ""{
     c.JSON( 401 , gin.H{"error": "Insert a password"});
     return
@@ -162,8 +163,8 @@ func LoginUser(c *gin.Context){
   } else{
     updateNameBruteForce(ip)
   }
-
-  token , err := bannerjwt.CreateToken(name)
+  is_mod := checkIsMod(name)
+  token , err := bannerjwt.CreateToken(name , is_mod)
   if err != nil{
     panic (err)
   }
@@ -177,20 +178,68 @@ func LoginUser(c *gin.Context){
 
 //File: ConfidentialInfoController
 func AccessInfo(c *gin.Context){
+  name := getParam(c , "name")
+  is_mod := getParam(c , "is_mod")
+  ad_arr := getUserData(name);
 
+  c.JSON(200 , gin.H{
+    "name" : name,
+    "mod" : is_mod,
+    "ads" : ad_arr,
+  })
 }
 //File: ConfidentialInfoController
-func CreateInfo(c *gin.Context){
+// func CreateBanner(c *gin.Context){
+//   image := c.PostForm("image")
+//   size := c.PostForm("size")
+//
+//
+//
+//   $response ="";
+//   $name = auth()->user()->name;
+//   $antispam_response = $this->doAntiSpam($name, $request->file('image')->getPathName());
+//   if ($antispam_response['cooldown']->count() > 0){
+//     return ['warn'=>'posting too fast('.
+//       ($antispam_response['cooldown']->first()->unix - Carbon::now()->subSeconds(intval(env('AD_CREATE_COOLDOWN',60)))->timestamp) . ' seconds)'];
+//   } else if ($antispam_response['duplicate']) {
+//     return ['warn'=> 'Duplicate detected'];
+//   } else{
+//     if($request->input('size') == "small"){
+//       $response = $this->createSmallInfo($request, $antispam_response['hash']);
+//     }
+//     else{
+//       $response = $this->createWideInfo($request, $antispam_response['hash']);
+//     }
+//   }
+//   $this->updateAntiSpam($name);
+//   return $response;
+// }
 
-}
 //File: ConfidentialInfoController
-func RemoveInfo(c *gin.Context){
+func RemoveBanner(c *gin.Context){
+  name := getParam(c , "name")
+  uri := getGet(c , "uri")
+  url := getGet(c , "url")
 
+  if !affirmImageIsOwned(name , uri) {
+    c.JSON(401 , gin.H{
+      "error" : "This banner is not owned"
+    })
+    return
+  } else{
+    removeAdImage(uri)
+    removeAdSQL(uri)
+    c.JSON(200 , gin.H{
+      "log" : "Banner removed"
+    })
+    return
+  }
 }
 
 //File: ModeratorActivityController
-func GetAllInfo(c *gin.Context){
-
+func GetAllBanners(c *gin.Context){
+  entires := getAllEntries()
+  c.JSON(200 , entires)
 }
 //File: ModeratorActivityController
 func BanUser(c *gin.Context){

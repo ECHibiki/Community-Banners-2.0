@@ -3,4 +3,5 @@
   "AccountInterval": 60,
   "AttemptInterval": 60,
   "MaxAttempts": 30,
+  "PublicPath":"./public/"
 }

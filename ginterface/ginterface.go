@@ -73,7 +73,7 @@ func AuthenticationMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
     // VALIDATE JWT
     token_string, _ := c.Cookie("jwt")
-    name, err := bannerjwt.IsAuth(token_string)
+    name, is_mod, err := bannerjwt.IsAuth(token_string)
     if err != nil{
       // ABORT IF INVALID
       c.JSON(401 , gin.H{"warn": "You are not logged in"})
@@ -89,6 +89,7 @@ func AuthenticationMiddleware() gin.HandlerFunc {
     c.SetCookie("jwt", token, int(time.Now().Add(time.Hour * 24).Unix()), "/",
       gin_settings.Domain, true, true)
     c.Set("name", name)
+    c.Set("is_mod", is_mod)
     c.Next()
 	}
 }

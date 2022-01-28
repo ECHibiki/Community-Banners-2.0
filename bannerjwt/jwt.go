@@ -21,9 +21,10 @@ func init(){
 type Claims struct {
 	*jwt.StandardClaims
 	Name string
+	IsMod bool
 }
 
-func IsAuth(token_string string) (string, error){
+func IsAuth(token_string string) (string, bool, error){
   token, err := jwt.ParseWithClaims(token_string, &Claims{},
   func(token *jwt.Token) (interface{}, error) {
       return verify_key, nil
@@ -33,16 +34,17 @@ func IsAuth(token_string string) (string, error){
     return "", err
   }
   claims := token.Claims.(*Claims)
-  return claims.Name , nil
+  return claims.Name , claims.IsMod, nil
 }
 
-func CreateToken(name string) (string, error){
+func CreateToken(name string, is_mod bool) (string, error){
   	token := jwt.New(jwt.GetSigningMethod("RS256"))
   	token.Claims = &Claims{
   		&jwt.StandardClaims{
   			ExpiresAt: time.Now().Add(time.Hour * 24).Unix(),
   		},
   		name,
+      is_mod
   	}
   	return token.SignedString(sign_key)
   }

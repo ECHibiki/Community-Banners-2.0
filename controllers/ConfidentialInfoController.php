@@ -22,15 +22,7 @@ class ConfidentialInfoController extends Controller
 		$this->middleware(['ban:api']);
 	}
 
-	public function accessInfo(Request $request){
-		$name = auth()->user()->name;
-		$ad_arr = array_reverse($this->getUserJson($name));
-		return [
-			'name'=>"$name",
-			'mod'=> auth()->payload()->get("is_mod"),
-			'ads'=> $ad_arr
-		];
-	}
+
 
 // can this be tested?
 	public function checkDuplicateBanner($tmp_fname){
@@ -78,7 +70,7 @@ class ConfidentialInfoController extends Controller
 		AntiSpam::create(['name'=>$name, 'unix' => 	Carbon::now()->timestamp, 'type'=>'ad']);
 	}
 
-	public function createInfo(Request $request){
+	public function CreateBanner(Request $request){
 		$response ="";
 		$name = auth()->user()->name;
 		$antispam_response = $this->doAntiSpam($name, $request->file('image')->getPathName());
@@ -148,21 +140,6 @@ class ConfidentialInfoController extends Controller
 		return ['log'=>'Ad Created', 'fname'=>$fname];
 	}
 
-	public function removeInfo(Request $request){
-		$uri = str_replace("storage/image", "public/image", $request->input('uri'));
-		$url = $request->input('url');
-		// slightly dangerous
-		if(!ConfidentialInfoController::affirmImageIsOwned($uri)){
-			return response(['warn'=>'This banner isn\'t owned'], 401);
-		}
-		else{
-			ConfidentialInfoController::RemoveAdImage($uri);
-			$this->removeAdSQL($uri, $url);
-			$this->removeUserJSON($uri , $url);
-			return response(['log'=>'Ad Removed'], 200);
-		}
-	}
-
 	public static function addUserJSON(string $uri, string $url, string $size){
 		$name = auth()->user()->name;
 		$combined = json_decode(Storage::disk('local')->get("$name.json"), true);
@@ -185,49 +162,10 @@ class ConfidentialInfoController extends Controller
 		Storage::disk('local')->put("$name.json", json_encode($reduced));
 	}
 
-	public static function getUserJSON(){
-		$name = auth()->user()->name;
-		$translated = [];
-		$combined = json_decode(Storage::disk('local')->get("$name.json"), true);
-		foreach($combined as $entry){
-			if(!isset($entry['size'])){
-				$data = DB::table('ads')->where('fk_name', $name)->where('uri', $entry['uri'])->where('url',$entry['url'])->first();
-				$entry['size'] = $data->size;
-				if($entry['size'] == 'small'){
-					$entry['clicks'] = '-';
-				}
-				else {
-					$entry['clicks'] = $data->clicks;
-				}
-			}
-			$translated[] = $entry;
-		}
-		return $translated;
-	}
-
 	public static function addAdSQL(string $uri, string $hash, string $url, string $size='wide'){
 		$name = auth()->user()->name;
 		$ad = new Ad(['fk_name'=>$name, 'hash'=>$hash, 'uri'=>$uri, 'url'=>$url, 'ip'=>ConfidentialInfoController::getBestIPSource(), 'size'=>$size]);
 		$ad->save();
 	}
-
-	public static function removeAdSQL(string $uri, string $url){
-		$name = auth()->user()->name;
-		DB::table('ads')->where('fk_name', $name)->where('uri', $uri)->where('url', $url)->delete();
-	}
-
-	// verify if owned
-	public static function RemoveAdImage($uri){
-		$fname = Storage::delete("$uri");
-	}
-	public static function affirmImageIsOwned($uri){
-		$name = auth()->user()->name;
-		return DB::table('ads')->where('fk_name','=', $name)->where('uri','=', $uri)->count() > 0;
-	}
-
-	public static function getBestIPSource(){
-		return isset($_SERVER['HTTP_X_REAL_IP']) ? $_SERVER['HTTP_X_REAL_IP'] : \Request::ip();
-	}
-
 
 }
