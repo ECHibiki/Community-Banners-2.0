@@ -10,6 +10,7 @@ import (
     _ "github.com/go-sql-driver/mysql"
 )
 
+// written for documentation purposes or future uses.
 type DBSettings struct{
   User string
   Pass string
@@ -18,19 +19,22 @@ type DBSettings struct{
 }
 
 type AntiSpam struct {
-  Name string
+  IP string
   Unix int32
   Type string
 }
 type User struct {
+  Id int32
   Name string
   Pass string
 }
 type Ban struct {
+  Id int32
   Name string
   HardBan bool
 }
 type Mod struct {
+  Id int32
   Name string
 }
 type Ad struct {

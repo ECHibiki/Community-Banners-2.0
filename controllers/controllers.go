@@ -1,12 +1,15 @@
 package controllers
 
 import (
+  "os"
   "fmt"
   "time"
+  "strconv"
   "io/ioutil"
   "encoding/json"
 
   "github.com/ECHibiki/Community-Banners-2.0/bannerjwt"
+  "github.com/ECHibiki/Community-Banners-2.0/mailer"
   "github.com/gin-gonic/gin"
 )
 // the functions in this file link to the routes in ginterface.go
@@ -17,9 +20,15 @@ type ControllerSettings struct{
   RedirectDomain string
   // minutes
   AccountInterval int64
+  BannerInterval int64
   AttemptInterval int64
   MaxAttempts int
   PublicPath string
+  MaxFileSize int64
+  SmallDimensionsX int
+  SmallDimensionsY int
+  WideDimensionsX int
+  WideDimensionsY int
 }
 
 var controller_settings ControllerSettings
@@ -122,7 +131,6 @@ func CreateNewUser(c *gin.Context){
   }
   updateIPCreation(ip)
 
-
   error_message := addNewUserToDB(name, pass);
   if error_message == ""{
     c.JSON( 200 , gin.H{"log": "Successfully Created"});
@@ -132,7 +140,7 @@ func CreateNewUser(c *gin.Context){
 }
 //File: UserCreationController
 func RejectUserCreation(c *gin.Context){
-  c.JSON(200 , gin.H{"warn": "Pool Closed - Come back later"})
+  c.JSON(200 , gin.H{"error": "Pool Closed - Come back later"})
 }
 
 //File: UserSignInController
@@ -189,48 +197,85 @@ func AccessInfo(c *gin.Context){
   })
 }
 //File: ConfidentialInfoController
-// func CreateBanner(c *gin.Context){
-//   image := c.PostForm("image")
-//   size := c.PostForm("size")
-//
-//
-//
-//   $response ="";
-//   $name = auth()->user()->name;
-//   $antispam_response = $this->doAntiSpam($name, $request->file('image')->getPathName());
-//   if ($antispam_response['cooldown']->count() > 0){
-//     return ['warn'=>'posting too fast('.
-//       ($antispam_response['cooldown']->first()->unix - Carbon::now()->subSeconds(intval(env('AD_CREATE_COOLDOWN',60)))->timestamp) . ' seconds)'];
-//   } else if ($antispam_response['duplicate']) {
-//     return ['warn'=> 'Duplicate detected'];
-//   } else{
-//     if($request->input('size') == "small"){
-//       $response = $this->createSmallInfo($request, $antispam_response['hash']);
-//     }
-//     else{
-//       $response = $this->createWideInfo($request, $antispam_response['hash']);
-//     }
-//   }
-//   $this->updateAntiSpam($name);
-//   return $response;
-// }
+func CreateBanner(c *gin.Context){
+  ip := c.ClientIP()
+  cooldown_timer := doCreationCooldown(ip)
+  if cooldown_timer <= 0{
+    c.JSON(401 , gin.H{"error": "Posting too fast(" + strconv.Itoa(cooldown_timer) + ") seconds"})
+    return
+  }
+  updateCreationCooldown(ip)
+
+  image , header , _:= c.Request.FormFile("image")
+  fsize := header.Size
+  if fsize > controller_settings.MaxFileSize {
+    c.JSON(401 , gin.H{"error": "Filesize is larger than " + strconv.Itoa(int(controller_settings.MaxFileSize / (1000 * 1000))) + " MB"})
+  }
+
+  size := c.PostForm("size")
+  url := c.PostForm("url")
+  name := getParam(c , "name")
+
+  if size == "wide" && url == ""{
+    c.JSON(401 , gin.H{"error": "URL Required" })
+  }
+
+  x , y := getImageDimensions(image)
+  if size == "small" &&
+    x == controller_settings.SmallDimensionsX &&
+    y == controller_settings.SmallDimensionsY {
+  } else if size == "wide" &&
+    x == controller_settings.WideDimensionsX &&
+    y == controller_settings.WideDimensionsY {
+  } else{
+    c.JSON(401 , gin.H{"error": "Dimensions are incorrect" })
+    return
+  }
+
+  tmp_location := controller_settings.PublicPath + "storage/tmp/" + "tmp-" + ip + "-name"
+  handle, err := os.Create(tmp_location)
+  if err != nil {
+    panic(err)
+  }
+  handle.Close();
+
+  unique := checkUniqueBanner(tmp_location)
+  if !unique{
+    os.Remove(tmp_location)
+    c.JSON(401 , gin.H{"error": "This banner is not unique"})
+    return
+  }
+
+  file_base64 := getBase64(tmp_location)
+  filename := generateHashedFileName(tmp_location)
+  file_path := "storage/image/" + filename
+  err = os.Rename(tmp_location , controller_settings.PublicPath + file_path)
+  if err != nil{
+    panic(err)
+  }
+  addBanner(name , file_path , url, ip ,  size  )
+  response := mailer.SendBannerEmail( name , file_base64 , url , file_path )
+  if response != "sent"{
+    c.JSON(200, gin.H{"warn" : "Banner Added "})
+  } else{
+    c.JSON(200, gin.H{"log" : "Banner Added "})
+  }
+}
 
 //File: ConfidentialInfoController
 func RemoveBanner(c *gin.Context){
   name := getParam(c , "name")
   uri := getGet(c , "uri")
-  url := getGet(c , "url")
-
   if !affirmImageIsOwned(name , uri) {
     c.JSON(401 , gin.H{
-      "error" : "This banner is not owned"
+      "error" : "This banner is not owned",
     })
     return
   } else{
+    removeAdSQL(name , uri)
     removeAdImage(uri)
-    removeAdSQL(uri)
     c.JSON(200 , gin.H{
-      "log" : "Banner removed"
+      "log" : "Banner removed",
     })
     return
   }
@@ -243,15 +288,50 @@ func GetAllBanners(c *gin.Context){
 }
 //File: ModeratorActivityController
 func BanUser(c *gin.Context){
+  target := getGet(c , "target")
+  hard := getGet(c , "hard")
+  if target == "" || hard == "" {
+    c.JSON(401 , gin.H{"error": "Fields missing"})
+    return
+  }
+  hard_ban , err := strconv.Atoi(hard)
+  if err != nil{
+    panic(err)
+  }
+  createNewBan(target, hard_ban)
 
+  hard_ban_str := ""
+  if hard_ban == 1 {
+    hard_ban_str = "hard"
+  } else{
+    hard_ban_str = "soft"
+  }
+  c.JSON(200 , gin.H{"log": "User " + target + " was " + hard_ban_str + " banned"})
 }
 //File: ModeratorActivityController
 func DeleteAll(c *gin.Context){
+  target := getGet(c , "target")
+  if target == "" {
+    c.JSON(401 , gin.H{"error": "Fields missing"})
+    return
+  }
+  removeAllUserImages(target)
+  removeUserFromDatabase(target)
 
+  c.JSON(200 , gin.H{"log": "User " + target + " was purged"})
 }
 //File: ModeratorActivityController
 func DeleteIndividual(c *gin.Context){
+  name := getGet(c , "name")
+  uri := getGet(c , "uri")
+  if name == "" || uri == ""{
+    c.JSON(401 , gin.H{"error": "Fields missing"})
+    return
+  }
+  removeIndividualBannerFromImages(uri)
+  removeIndividualBannerFromDB(uri)
 
+  c.JSON(200 , gin.H{"log": name + "'s image was pruned"})
 }
 
 /* MISC FUNCTIONS */

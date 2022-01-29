@@ -31,7 +31,7 @@ func IsAuth(token_string string) (string, bool, error){
    },
   )
   if err != nil{
-    return "", err
+    return "",false, err
   }
   claims := token.Claims.(*Claims)
   return claims.Name , claims.IsMod, nil
@@ -44,7 +44,7 @@ func CreateToken(name string, is_mod bool) (string, error){
   			ExpiresAt: time.Now().Add(time.Hour * 24).Unix(),
   		},
   		name,
-      is_mod
+      is_mod,
   	}
   	return token.SignedString(sign_key)
   }

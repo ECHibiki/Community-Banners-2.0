@@ -48,13 +48,13 @@ func Init(port string){
     logged_group.Use(BannedMiddleware())
     {
       logged_group.GET("details", controllers.AccessInfo)
-      logged_group.POST("details", controllers.CreateInfo)
-      logged_group.POST("removal", controllers.RemoveInfo)
+      logged_group.POST("details", controllers.CreateBanner)
+      logged_group.POST("removal", controllers.RemoveBanner)
 
       mod_group := logged_group.Group("mod/")
       mod_group.Use(ModeratorMiddleware())
       {
-        mod_group.GET("all", controllers.GetAllInfo)
+        mod_group.GET("all", controllers.GetAllBanners)
         mod_group.POST("ban", controllers.BanUser)
         mod_group.POST("purge", controllers.DeleteAll)
         mod_group.POST("individual", controllers.DeleteIndividual)
@@ -79,7 +79,7 @@ func AuthenticationMiddleware() gin.HandlerFunc {
       c.JSON(401 , gin.H{"warn": "You are not logged in"})
       c.Abort()
     }
-    token, err := bannerjwt.CreateToken(name)
+    token, err := bannerjwt.CreateToken(name , is_mod)
     if err != nil{
       // ABORT IF INVALID
       c.SetCookie("jwt", "", -1, "/", gin_settings.Domain, true, true)

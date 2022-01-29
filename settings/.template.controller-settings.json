@@ -1,7 +1,13 @@
 {
   "RedirectDomain":"localhost",
   "AccountInterval": 60,
+  "BannerInterval": 60,
   "AttemptInterval": 60,
   "MaxAttempts": 30,
-  "PublicPath":"./public/"
+  "MaxFileSize": 2000000,
+  "PublicPath":"./public/",
+  "SmallDimensionsX": 140,
+  "SmallDimensionsY": 300,
+  "WideDimensionsX": 500,
+  "WideDimensionsY": 90,
 }

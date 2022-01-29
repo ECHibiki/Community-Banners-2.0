@@ -21,6 +21,7 @@ settings/db-settings.json
 settings/gin-settings.json
 settings/mail-settings.json
 settings/controller-settings.json
+settings/ui-settings.js
 
 public/js/app.js*
 public/css/app.css*

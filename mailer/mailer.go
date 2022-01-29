@@ -37,7 +37,7 @@ func Init(){
 }
 
 //https://medium.com/vacatronics/sending-email-with-go-23ae14050914
-func SendEmailToAll(mail_body string , mail_title string) ( string ){
+func sendEmailToAll(mail_body string , mail_title string) ( string ){
   if(time.Now().Unix() - last_sent_mail < mail_settings.SendInterval) {
     fmt.Println("Mail timeout " + strconv.FormatInt(time.Now().Unix() - last_sent_mail , 10) )
     return "Mail timeout " + strconv.FormatInt(time.Now().Unix() - last_sent_mail , 10)
@@ -67,6 +67,23 @@ func SendEmailToAll(mail_body string , mail_title string) ( string ){
   return "Sent"
 }
 
+func SendBannerEmail(name string, file_base64 string, url string, uri string) string {
+  // Get the template
+  params := map[string]string{
+    "time": time.Now().Format(time.UnixDate) + " - UnixDate" ,
+    "name": name ,
+    "url": url ,
+    "uri": uri ,
+    "base64": file_base64 ,
+
+  }
+  parsed_template := templater.ReturnFilledTemplate("./templates/banner-mail-notice.html" , params)
+  // Send as email
+  response := sendEmailToAll(parsed_template, "Test banner notification")
+  // confirm response
+  return response
+}
+
 /* Simple test of mail functions */
 
 func test(){
@@ -80,7 +97,7 @@ func test(){
   }
   parsed_template := templater.ReturnFilledTemplate("./templates/banner-mail-notice.html" , params)
   // Send as email
-  response := SendEmailToAll(parsed_template, "Test banner notification")
+  response := sendEmailToAll(parsed_template, "Test banner notification")
   // confirm response
   fmt.Println(response)
 }

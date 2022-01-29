@@ -10,7 +10,7 @@ func validateNameBruteForce(ip string) bool{
   // lock out for N + oldest_attempt minutes if entered to table 5 times
   as , err := bannerdb.Query(`
     SELECT * FROM antispam
-    WHERE name = ? AND type = "login" AND unix >= ?
+    WHERE ip = ? AND type = "login" AND unix >= ?
   ` , []interface{}{
     ip , time.Now().Unix() - controller_settings.AttemptInterval * 60,
   })
@@ -58,7 +58,7 @@ func checkAuthentication(name string , pass string) bool{
   return pass_err == nil
 }
 
-func checkIsMod(name string){
+func checkIsMod(name string) bool{
   mod_get , err := bannerdb.Query(`
     SELECT name FROM mods
     WHERE fk_name = ?

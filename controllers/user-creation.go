@@ -8,7 +8,7 @@ import (
 )
 
 func validateIPCreation(ip string) bool{
-  cooldown := time.Now().Unix() + controller_settings.AccountInterval * 60
+  cooldown := time.Now().Unix() - controller_settings.AccountInterval * 60
   rows , err := bannerdb.Query(`
     SELECT * FROM antispam WHERE ip = ? AND type="create" AND unix >= ?
   ` , []interface{}{ ip , cooldown} )
@@ -20,7 +20,7 @@ func validateIPCreation(ip string) bool{
 
 func updateIPCreation(ip string){
   time_now := time.Now().Unix()
-  cooldown := time_now + controller_settings.AccountInterval * 60
+  cooldown := time_now - controller_settings.AccountInterval * 60
   _ , del_err := bannerdb.Query(`
     DELETE FROM antispam WHERE unix < ? AND type="create"
   ` , []interface{}{ cooldown } )
