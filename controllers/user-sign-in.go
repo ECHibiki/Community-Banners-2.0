@@ -8,11 +8,13 @@ import (
 
 func validateNameBruteForce(ip string) bool{
   // lock out for N + oldest_attempt minutes if entered to table 5 times
+  timer := time.Now().Unix()
+  cooldown := time.Now().Unix() + controller_settings.AttemptInterval * 60
   as , err := bannerdb.Query(`
     SELECT * FROM antispam
     WHERE ip = ? AND type = "login" AND unix >= ?
   ` , []interface{}{
-    ip , time.Now().Unix() - controller_settings.AttemptInterval * 60,
+    ip , timer ,
   })
   if err != nil{
     panic (err)
@@ -24,7 +26,7 @@ func validateNameBruteForce(ip string) bool{
   _ , err = bannerdb.Query(`
     INSERT INTO antispam VALUES ( ? , ? , ?)
   ` , []interface{}{
-    ip , time.Now().Unix() , "login",
+    ip , cooldown , "login",
   })
   if err != nil{
     panic (err)
@@ -32,11 +34,12 @@ func validateNameBruteForce(ip string) bool{
   return true
 }
 
-func updateNameBruteForce(ip string){
+func updateNameBruteForce(){
   // clear entries on table
+  timer := time.Now().Unix()
   _ , err := bannerdb.Query(`
-    DELETE FROM antispam WHERE ip = ? AND type = "login"
-  ` , []interface{}{ ip })
+    DELETE FROM antispam WHERE unix < ?
+  ` , []interface{}{ timer })
   if err != nil{
     panic (err)
   }
@@ -60,7 +63,7 @@ func checkAuthentication(name string , pass string) bool{
 
 func checkIsMod(name string) bool{
   mod_get , err := bannerdb.Query(`
-    SELECT name FROM mods
+    SELECT fk_name FROM mods
     WHERE fk_name = ?
   `, []interface{}{name})
   if err != nil{
@@ -68,12 +71,22 @@ func checkIsMod(name string) bool{
   }
   return len(mod_get) > 0
 }
+func checkIsDonor(token string) bool{
+  token_get , err := bannerdb.CrossDBQuery(`
+    SELECT %s.token FROM mods
+    WHERE token = ?
+  `, []interface{}{token})
+  if err != nil{
+    panic(err)
+  }
+  return len(token_get) > 0
+}
 
-func checkHardBanned(name string) bool{
+func checkHardBanned(name string , ip string) bool{
   ban_get , err := bannerdb.Query(`
     SELECT fk_name FROM bans
-    WHERE fk_name = ? AND hardban=1
-  `, []interface{}{name})
+    WHERE (fk_name = ? OR ip = ?) AND hardban=1
+  `, []interface{}{name, ip})
   if err != nil{
     panic(err)
   }

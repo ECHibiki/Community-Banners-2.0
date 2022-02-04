@@ -9,7 +9,7 @@ import (
   "github.com/tyler-sommer/stick"
 )
 var env *stick.Env
-func Init(){
+func init(){
 
   fmt.Println("Starting Templater...")
   env = stick.New(nil)

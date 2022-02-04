@@ -8,6 +8,8 @@ import (
   "net/smtp"
   "encoding/json"
 
+  // "log"
+
   "github.com/ECHibiki/Community-Banners-2.0/templater"
 )
 
@@ -21,13 +23,16 @@ type MailSettings struct{
 var mail_settings MailSettings
 var last_sent_mail int64
 
-func Init(){
+func init(){
   fmt.Println("\nMailer initialization...")
   setting_json_bytes, err := ioutil.ReadFile("./settings/mail-settings.json")
   if err != nil{
     panic(err)
   }
-  json.Unmarshal(setting_json_bytes, &mail_settings)
+  err = json.Unmarshal(setting_json_bytes, &mail_settings)
+  if err != nil{
+    panic(err)
+  }
   fmt.Println("...Mailer Interface initialized")
 
   // fmt.Println("\n\nRUNNING MAIL TEST")
@@ -37,7 +42,7 @@ func Init(){
 }
 
 //https://medium.com/vacatronics/sending-email-with-go-23ae14050914
-func sendEmailToAll(mail_body string , mail_title string) ( string ){
+func sendEmailToAll(mail_body string , attatchment string, file_name string, mail_title string) ( string ){
   if(time.Now().Unix() - last_sent_mail < mail_settings.SendInterval) {
     fmt.Println("Mail timeout " + strconv.FormatInt(time.Now().Unix() - last_sent_mail , 10) )
     return "Mail timeout " + strconv.FormatInt(time.Now().Unix() - last_sent_mail , 10)
@@ -50,15 +55,31 @@ func sendEmailToAll(mail_body string , mail_title string) ( string ){
   smtpHost := "smtp.gmail.com"
   smtpPort := "587"
 
-  message := []byte("Subject: " + mail_title + "\r\n" +
-    "Content-Type: text/html; charset=\"UTF-8\";\n\n" +
-		mail_body + "\r\n")
+  var message string
+    delimeter := "**=--4050delimit"
+  message += "Subject: " + mail_title + "\r\n"
+  if attatchment != ""{
+    // multipart
+    message += fmt.Sprintf("MIME-Version: 1.0\r\nContent-Type: multipart/mixed; boundary=\"%s\"\r\n", delimeter)
+    // body
+    message += fmt.Sprintf("\r\n--%s\r\n" , delimeter)
+    message += "Content-Type: text/html; charset=\"utf-8\";\r\n"
+    message += "Content-Transfer-Encoding: 7bit\r\n"
+    message += "\r\n" + mail_body + "\r\n"
+      // attatchment
+    message += fmt.Sprintf("\r\n--%s\r\n" , delimeter)
+    message += "Content-Type: text/plain; charset=\"utf-8\"\r\n"
+    message += "Content-Transfer-Encoding: base64\r\n"
+    message += "Content-Disposition: attachment;filename=\"" + file_name +"\"\r\n\r\n" + attatchment
+  } else{
+    message = "Content-Type: text/html; charset=\"UTF-8\";\n\n" + mail_body + "\r\n"
+  }
 
   // Create authentication
   auth := smtp.PlainAuth("", from, password, smtpHost)
 
   // Send actual message
-  err := smtp.SendMail(smtpHost+":"+smtpPort, auth, from, to, message)
+  err := smtp.SendMail(smtpHost+":"+smtpPort, auth, from, to, []byte(message))
   if err != nil {
     fmt.Println("Mail Error: ", err)
     return err.Error()
@@ -67,19 +88,18 @@ func sendEmailToAll(mail_body string , mail_title string) ( string ){
   return "Sent"
 }
 
-func SendBannerEmail(name string, file_base64 string, url string, uri string) string {
+func SendBannerEmail(name string, file_base64 string, url string, uri string , original_filename string) string {
   // Get the template
   params := map[string]string{
     "time": time.Now().Format(time.UnixDate) + " - UnixDate" ,
     "name": name ,
     "url": url ,
     "uri": uri ,
-    "base64": file_base64 ,
-
+    "image": "https://banners.kissu.moe/" + uri ,
   }
   parsed_template := templater.ReturnFilledTemplate("./templates/banner-mail-notice.html" , params)
   // Send as email
-  response := sendEmailToAll(parsed_template, "Test banner notification")
+  response := sendEmailToAll(parsed_template, file_base64, original_filename , "New Banner Notification")
   // confirm response
   return response
 }
@@ -97,7 +117,7 @@ func test(){
   }
   parsed_template := templater.ReturnFilledTemplate("./templates/banner-mail-notice.html" , params)
   // Send as email
-  response := sendEmailToAll(parsed_template, "Test banner notification")
+  response := sendEmailToAll(parsed_template, "" , "" , "Test banner notification")
   // confirm response
   fmt.Println(response)
 }

@@ -12,7 +12,7 @@ export class ModDetailsTable extends Component{
 		for(var index in adData){
 			var entry = adData[index];
 			entry['uri'] = entry['uri'].replace('public/image/', 'storage/image/');
-			JSX_var.push(<ModDetailsEntry updateDetailsCallback={this.props.updateDetailsCallback} id={"banner-" + index} key={"banner-"+index} ad_src={entry['uri']} url={entry['url']} name={entry['fk_name']} ban={entry['hardban']}/>);
+			JSX_var.push(<ModDetailsEntry updateDetailsCallback={this.props.updateDetailsCallback} id={"banner-" + index} key={"banner-"+index} ad_src={entry['uri']} url={entry['url']} name={entry['name']} ban={entry['hardban']}/>);
 		}
 		return JSX_var;
 	}
@@ -117,24 +117,11 @@ export class ModIndividualRemovalAPIButton extends Component{
 		const url= this.props.url;
 		const name = this.props.name;
 		var response = await APICalls.callModRemoveIndividualAds(name,uri,url);
-		if("message" in response){
-			if("errors" in response){
-				var reasons_arr = []
-				for(var reason in response['errors']){
-					reasons_arr.push(response['errors'][reason]);
-				}
-				var key_ind = 0;
-				this.setState({
-					info_text:reasons_arr.map((r) => <span key={key_ind++}>{r}<br/></span> ),
-					info_class:"text-danger"
-				});
-			}
-			else{
-				this.setState({
-					info_text:<span>{response['message']}<br/></span>,
-					info_class:"text-danger"
-				});
-			}
+		if("error" in response){
+			this.setState({
+				info_text:response['error'],
+				info_class:"text-danger"
+			});
 		}
 		else if("warn" in response){
 			this.setState({info_text:response['warn'], info_class:"text-warning bg-dark"});
@@ -165,24 +152,11 @@ export class ModCompleteRemovalAPIButton extends Component{
 		const name = this.props.name;
 
 		var response = await APICalls.callModRemoveAllUserAds(name);
-		if("message" in response){
-			if("errors" in response){
-				var reasons_arr = []
-				for(var reason in response['errors']){
-					reasons_arr.push(response['errors'][reason]);
-				}
-				var key_ind = 0;
-				this.setState({
-					info_text:reasons_arr.map((r) => <span key={key_ind++}>{r}<br/></span> ),
-					info_class:"text-danger"
-				});
-			}
-			else{
-				this.setState({
-					info_text:<span>{response['message']}<br/></span>,
-					info_class:"text-danger"
-				});
-			}
+		if("error" in response){
+			this.setState({
+				info_text:response['error'],
+				info_class:"text-danger"
+			});
 		}
 		else if("warn" in response){
 			this.setState({info_text:response['warn'], info_class:"text-warning bg-dark"});
@@ -211,24 +185,11 @@ export class ModSoftBanAPIButton extends Component{
 	async SoftBan(){
 		const name = this.props.name;
 		var response = await APICalls.callModBanUser(name, 0);
-		if("message" in response){
-			if("errors" in response){
-				var reasons_arr = []
-				for(var reason in response['errors']){
-					reasons_arr.push(response['errors'][reason]);
-				}
-				var key_ind = 0;
-				this.setState({
-					info_text:reasons_arr.map((r) => <span key={key_ind++}>{r}<br/></span> ),
-					info_class:"text-danger"
-				});
-			}
-			else{
-				this.setState({
-					info_text:<span>{response['message']}<br/></span>,
-					info_class:"text-danger"
-				});
-			}
+		if("error" in response){
+			this.setState({
+				info_text:response['error'],
+				info_class:"text-danger"
+			});
 		}
 		else if("warn" in response){
 			this.setState({info_text:response['warn'], info_class:"text-warning bg-dark"});
@@ -258,24 +219,16 @@ export class ModHardBanAPIButton extends Component{
 		const name = this.props.name;
 
 		var response = await APICalls.callModBanUser(name, 1);
-		if("message" in response){
-			if("errors" in response){
-				var reasons_arr = []
-				for(var reason in response['errors']){
-					reasons_arr.push(response['errors'][reason]);
-				}
-				var key_ind = 0;
-				this.setState({
-					info_text:reasons_arr.map((r) => <span key={key_ind++}>{r}<br/></span> ),
-					info_class:"text-danger"
-				});
+		if("error" in response){
+			var reasons_arr = []
+			for(var reason in response['error']){
+				reasons_arr.push(response['error'][reason]);
 			}
-			else{
-				this.setState({
-					info_text:<span>{response['message']}<br/></span>,
-					info_class:"text-danger"
-				});
-			}
+			var key_ind = 0;
+			this.setState({
+				info_text:reasons_arr.map((r) => <span key={key_ind++}>{r}<br/></span> ),
+				info_class:"text-danger"
+			});
 		}
 		else if("warn" in response){
 			this.setState({info_text:response['warn'], info_class:"text-warning bg-dark"});

@@ -4,6 +4,8 @@ import (
   "os"
   "fmt"
   "time"
+  "strings"
+  "regexp"
   "strconv"
   "io/ioutil"
   "encoding/json"
@@ -31,37 +33,54 @@ type ControllerSettings struct{
   WideDimensionsY int
 }
 
+type Login struct{
+  Name string `json:"name"`
+  Pass string `json:"pass"`
+  Pass_Confirm string `json:"pass_confirmation"`
+  Token string `json:"token"`
+}
+
+type UserRemoval struct{
+  URI string `json:"uri"`
+}
+
 var controller_settings ControllerSettings
 
-func Init(){
+func init(){
+  fmt.Println("init controllers...")
   setting_json_bytes, err := ioutil.ReadFile("./settings/controller-settings.json")
   if err != nil{
     panic(err)
   }
-  json.Unmarshal(setting_json_bytes, &controller_settings)
+  err = json.Unmarshal(setting_json_bytes, &controller_settings)
+  if err != nil{
+    panic(err)
+  }
+  fmt.Println("...controllers init")
 }
 
-//File: PageGenerationController
+/* File: PageGenerationController */
 func GenerateAdPage(c *gin.Context){
-  size := getParam(c ,"size")
   name := getGet(c, "name")
+  size := getParam(c ,"size")
   // https://github.com/gin-gonic/gin/issues/2697
   // If it is a trusted IP (which means the request is redirected by a proxy),
   // then it will try to parse the "real user IP" from X-Forwarded-For/X-Real-Ip header.
   ip := c.ClientIP()
   page := returnAdPage(name , size, ip)
 
-  c.HTML(200 , "banner.html" , page)
+  c.Header("Content-Type", "text/html")
+  c.String(200 , page)
 }
-//File: PageGenerationController
+/* File: PageGenerationController */
 func GenerateAdJSON(c *gin.Context){
-  size := getParam(c ,"size")
   name := getGet(c, "name")
+  size := getParam(c ,"size")
   ip := c.ClientIP()
   ad_gin_h := returnAdJson(name , size, ip)
   c.JSON(200, ad_gin_h)
 }
-//File: PageGenerationController
+/* File: PageGenerationController */
 // return info limited to entries not created by shadow banned users
 func GetLimitedInfo(c *gin.Context){
   name := getGet(c, "name")
@@ -72,7 +91,7 @@ func GetLimitedInfo(c *gin.Context){
     gh := gin.H{
       "url": ad["url"],
       "uri": ad["uri"],
-      "name":ad["ads.fk_name"],
+      "name":ad["name"],
       "size":ad["size"],
       "clicks":ad["clicks"],
     }
@@ -81,19 +100,19 @@ func GetLimitedInfo(c *gin.Context){
   c.JSON(200, ad_gin_h);
 }
 
-//File: RedirectController
+/* File: RedirectController */
 func RedirectSiteRequest(c *gin.Context){
 
   site := getParam(c , "s")
   file := getParam(c , "f")
 
   if site == ""{
-      c.HTML(404, "url-error.html", "Non-existing URL")
+      c.HTML(404, "", "Non-existing URL")
       return
   }
 
   if !checkURIExists(file){
-    c.HTML(404, "uri-error.html", "Non-existing URI")
+    c.HTML(404, "", "Non-existing URI")
     return
   }
 
@@ -102,25 +121,29 @@ func RedirectSiteRequest(c *gin.Context){
   c.Redirect(301 , site)
 }
 
-//File: UserCreationController
+/* File: UserCreationController */
 func CreateNewUser(c *gin.Context){
   ip := c.ClientIP()
-  name := c.PostForm("name")
-  if len(name) > 30 {
+  var login Login
+  c.BindJSON(&login)
+
+  if len(login.Name) > 30 {
     c.JSON( 401 , gin.H{"error": "Name should not be longer than 30 characters"});
     return
   }
-  if name == ""{
+  if login.Name == ""{
     c.JSON( 401 , gin.H{"error": "Insert a name"});
     return
   }
-  pass := c.PostForm("pass")
-  pass_confirm := c.PostForm("pass_conf")
-  if pass != pass_confirm{
+  if len(login.Pass) < 5 {
+    c.JSON( 401 , gin.H{"error": "Password is too short"});
+    return
+  }
+  if login.Pass != login.Pass_Confirm{
     c.JSON( 401 , gin.H{"error": "Passwords do not match"});
     return
   }
-  if pass == ""{
+  if login.Pass == ""{
     c.JSON( 401 , gin.H{"error": "Insert a password"});
     return
   }
@@ -131,93 +154,134 @@ func CreateNewUser(c *gin.Context){
   }
   updateIPCreation(ip)
 
-  error_message := addNewUserToDB(name, pass);
+  error_message := addNewUserToDB(login.Name, login.Pass);
   if error_message == ""{
     c.JSON( 200 , gin.H{"log": "Successfully Created"});
   } else{
     c.JSON( 401 , gin.H{"error": error_message});
   }
 }
-//File: UserCreationController
+/* File: UserCreationController */
 func RejectUserCreation(c *gin.Context){
   c.JSON(200 , gin.H{"error": "Pool Closed - Come back later"})
 }
 
-//File: UserSignInController
-func LoginUser(c *gin.Context){
-  name := c.PostForm("name")
-  if name == ""{
-    c.JSON( 401 , gin.H{"error": "Insert a name"});
-    return
+/* File: UserSignInController */
+// used on both sign in and creation
+func LoginUser(domain string) gin.HandlerFunc{
+  return func(c *gin.Context){
+    var login Login
+    c.BindJSON(&login)
+    ip := c.ClientIP()
+    if login.Name == ""{
+      c.JSON( 401 , gin.H{"error": "Insert a name"});
+      return
+    }
+    if login.Pass == ""{
+      c.JSON( 401 , gin.H{"error": "Insert a password"});
+      return
+    }
+    if checkHardBanned(login.Name , ip) {
+      c.JSON( 401 , gin.H{"error": "You've been banned..."});
+      return
+    }
+    // N attempts every Xsec for given IP
+    if !validateNameBruteForce(ip) {
+      c.JSON( 401 , gin.H{"error": "Too many password attempts in timespan(" + strconv.Itoa(int(controller_settings.AttemptInterval)) + "min)"});
+      return
+    }
+    if !checkAuthentication(login.Name, login.Pass) {
+      c.JSON( 401 , gin.H{"error": "Invalid username/password"});
+      return
+    } else{
+      updateNameBruteForce()
+    }
+    login.Token  = strings.TrimSpace(login.Token)
+    is_donor := false
+    if login.Token != ""{
+      is_donor := checkIsDonor(login.Token)
+      if !is_donor{
+        c.JSON( 401 , gin.H{"error": "Your token was not entered correctly"});
+        return
+      }
+    }
+    is_mod := checkIsMod(login.Name)
+    token , err := bannerjwt.CreateToken(login.Name , is_donor , is_mod)
+    if err != nil{
+      panic (err)
+    }
+    c.SetCookie("freeadstoken", token, int(time.Now().Add(time.Hour * 24).Unix()), "/",
+      domain, true, true)
+    c.JSON(200 , gin.H{
+      // "access_token" : gin.H{
+      //   "code" : token,
+      //   "token_type" : "bearer",
+      // },
+      // "refresh_token": gin.H {
+      //   "code" : "",
+      //   "token_type" : "refresh",
+      // },
+      // "expires_in" : time.Now().Add(time.Hour * 24).Unix(),
+      "log" : "Successfully Logged In",
+    })
   }
-  pass := c.PostForm("pass")
-  if pass == ""{
-    c.JSON( 401 , gin.H{"error": "Insert a password"});
-    return
-  }
-  if !checkHardBanned(name) {
-    c.JSON( 401 , gin.H{"error": "You've been banned..."});
-    return
-  }
-  // N attempts every X for given IP
-  ip := c.ClientIP()
-  if !validateNameBruteForce(ip) {
-    c.JSON( 401 , gin.H{"error": "Too many password attempts in timespan"});
-    return
-  }
-  if !checkAuthentication(name, pass) {
-    c.JSON( 401 , gin.H{"error": "Invalid username/password"});
-    return
-  } else{
-    updateNameBruteForce(ip)
-  }
-  is_mod := checkIsMod(name)
-  token , err := bannerjwt.CreateToken(name , is_mod)
-  if err != nil{
-    panic (err)
-  }
-  c.JSON(200 , gin.H{
-    "access_token" : token,
-    "token_type" : "bearer",
-    "expires_in" : time.Now().Add(time.Hour * 24).Unix(),
-    "log" : "Successfully Logged In",
-  })
 }
 
-//File: ConfidentialInfoController
+/* File: ConfidentialInfoController */
 func AccessInfo(c *gin.Context){
-  name := getParam(c , "name")
-  is_mod := getParam(c , "is_mod")
+  name := getGet(c , "name")
+  is_mod := getGet(c , "is_mod")
   ad_arr := getUserData(name);
-
   c.JSON(200 , gin.H{
     "name" : name,
     "mod" : is_mod,
     "ads" : ad_arr,
   })
 }
-//File: ConfidentialInfoController
+/* File: ConfidentialInfoController */
 func CreateBanner(c *gin.Context){
   ip := c.ClientIP()
   cooldown_timer := doCreationCooldown(ip)
-  if cooldown_timer <= 0{
+  if cooldown_timer < 0{
     c.JSON(401 , gin.H{"error": "Posting too fast(" + strconv.Itoa(cooldown_timer) + ") seconds"})
     return
   }
-  updateCreationCooldown(ip)
+  insertHaltCooldown(ip)
 
-  image , header , _:= c.Request.FormFile("image")
+  image , header , err:= c.Request.FormFile("image")
+  if err != nil {
+    c.JSON(401 , gin.H{"error": "File not set or is invalid"})
+    return
+  }
+  defer image.Close()
+  mime := getMimeType(image)
+  if mime != "image/jpg" &&
+    mime != "image/jpeg" &&
+    mime != "image/png" &&
+    mime != "image/gif"{
+      c.JSON(401 , gin.H{"error": "File should be jpeg, png or gif"})
+      return
+  }
+
   fsize := header.Size
   if fsize > controller_settings.MaxFileSize {
     c.JSON(401 , gin.H{"error": "Filesize is larger than " + strconv.Itoa(int(controller_settings.MaxFileSize / (1000 * 1000))) + " MB"})
+    return
   }
 
   size := c.PostForm("size")
   url := c.PostForm("url")
-  name := getParam(c , "name")
+  name := getGet(c, "name")
 
   if size == "wide" && url == ""{
     c.JSON(401 , gin.H{"error": "URL Required" })
+    return
+  }
+  //https://stackoverflow.com/questions/3809401/what-is-a-good-regular-expression-to-match-a-url
+  url_regex := regexp.MustCompile(`https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)`)
+  if size== "wide" && !url_regex.Match([]byte(url)){
+    c.JSON(401 , gin.H{"error": "URL does not look valid" })
+    return
   }
 
   x , y := getImageDimensions(image)
@@ -228,52 +292,57 @@ func CreateBanner(c *gin.Context){
     x == controller_settings.WideDimensionsX &&
     y == controller_settings.WideDimensionsY {
   } else{
-    c.JSON(401 , gin.H{"error": "Dimensions are incorrect" })
+    var dim_str string
+    if size == "small" {
+      dim_str = "(" +  strconv.Itoa(controller_settings.SmallDimensionsX) + "x" + strconv.Itoa(controller_settings.SmallDimensionsY) + ")"
+    } else{
+      dim_str = "(" +  strconv.Itoa(controller_settings.WideDimensionsX) + "x" + strconv.Itoa(controller_settings.WideDimensionsY) + ")"
+    }
+    c.JSON(401 , gin.H{"error": "Dimensions are incorrect" +  dim_str })
     return
   }
 
-  tmp_location := controller_settings.PublicPath + "storage/tmp/" + "tmp-" + ip + "-name"
-  handle, err := os.Create(tmp_location)
-  if err != nil {
-    panic(err)
-  }
-  handle.Close();
+  tmp_location := writeTmpFile(name , image)
 
-  unique := checkUniqueBanner(tmp_location)
-  if !unique{
-    os.Remove(tmp_location)
-    c.JSON(401 , gin.H{"error": "This banner is not unique"})
+  uniqueness_response , hash := checkUniqueBanner(tmp_location)
+  if uniqueness_response != ""{
+    // os.Remove(tmp_location)
+    c.JSON(401 , gin.H{"error": uniqueness_response})
     return
   }
 
   file_base64 := getBase64(tmp_location)
   filename := generateHashedFileName(tmp_location)
-  file_path := "storage/image/" + filename
-  err = os.Rename(tmp_location , controller_settings.PublicPath + file_path)
+  uri := "storage/image/" + filename
+  err = os.Rename(tmp_location , controller_settings.PublicPath + uri)
   if err != nil{
+    os.Remove(tmp_location)
+    os.Remove(controller_settings.PublicPath + uri)
     panic(err)
   }
-  addBanner(name , file_path , url, ip ,  size  )
-  response := mailer.SendBannerEmail( name , file_base64 , url , file_path )
-  if response != "sent"{
+  addBanner(name , uri , url, ip ,  size , hash )
+  updateCreationCooldown(ip)
+  response := mailer.SendBannerEmail( name , file_base64 , url , uri , header.Filename  )
+  if response != "Sent"{
     c.JSON(200, gin.H{"warn" : "Banner Added "})
   } else{
     c.JSON(200, gin.H{"log" : "Banner Added "})
   }
 }
 
-//File: ConfidentialInfoController
+/* File: ConfidentialInfoController */
 func RemoveBanner(c *gin.Context){
-  name := getParam(c , "name")
-  uri := getGet(c , "uri")
-  if !affirmImageIsOwned(name , uri) {
+  name := getGet(c , "name")
+  var removal UserRemoval
+  c.BindJSON(&removal)
+  if !affirmImageIsOwned(name , removal.URI) {
     c.JSON(401 , gin.H{
       "error" : "This banner is not owned",
     })
     return
   } else{
-    removeAdSQL(name , uri)
-    removeAdImage(uri)
+    removeAdImage(removal.URI)
+    removeAdSQL(name , removal.URI)
     c.JSON(200 , gin.H{
       "log" : "Banner removed",
     })
@@ -281,15 +350,16 @@ func RemoveBanner(c *gin.Context){
   }
 }
 
-//File: ModeratorActivityController
+/* File: ModeratorActivityController */
 func GetAllBanners(c *gin.Context){
   entires := getAllEntries()
   c.JSON(200 , entires)
 }
-//File: ModeratorActivityController
+/* File: ModeratorActivityController */
 func BanUser(c *gin.Context){
   target := getGet(c , "target")
   hard := getGet(c , "hard")
+  ip := c.ClientIP()
   if target == "" || hard == "" {
     c.JSON(401 , gin.H{"error": "Fields missing"})
     return
@@ -298,7 +368,7 @@ func BanUser(c *gin.Context){
   if err != nil{
     panic(err)
   }
-  createNewBan(target, hard_ban)
+  createNewBan(target, hard_ban , ip)
 
   hard_ban_str := ""
   if hard_ban == 1 {
@@ -308,7 +378,7 @@ func BanUser(c *gin.Context){
   }
   c.JSON(200 , gin.H{"log": "User " + target + " was " + hard_ban_str + " banned"})
 }
-//File: ModeratorActivityController
+/* File: ModeratorActivityController */
 func DeleteAll(c *gin.Context){
   target := getGet(c , "target")
   if target == "" {
@@ -320,7 +390,7 @@ func DeleteAll(c *gin.Context){
 
   c.JSON(200 , gin.H{"log": "User " + target + " was purged"})
 }
-//File: ModeratorActivityController
+/* File: ModeratorActivityController */
 func DeleteIndividual(c *gin.Context){
   name := getGet(c , "name")
   uri := getGet(c , "uri")
@@ -339,7 +409,7 @@ func DeleteIndividual(c *gin.Context){
 func getParam(c *gin.Context, key string) string{
   q := c.Request.URL.Query()
   var value string
-  if key_arr, key_exists := q["f"] ; key_exists && len(key_arr) != 0{
+  if key_arr, key_exists := q[key] ; key_exists && len(key_arr) != 0{
     value = key_arr[0]
   } else{
     value = ""

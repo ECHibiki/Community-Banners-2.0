@@ -17,10 +17,10 @@ func getAllEntries() []map[string]string{
   return ent
 }
 
-func createNewBan(target string, hard_ban int){
+func createNewBan(target string, hard_ban int , ip string){
   _ , err := bannerdb.Query(`
-      INSERT INTO bans VALUES (? , ?)
-    ` , []interface{}{target , hard_ban})
+      INSERT INTO bans VALUES (NULL , ? , ? , ?)
+    ` , []interface{}{target , hard_ban , ip})
   if err != nil{
     panic(err)
   }

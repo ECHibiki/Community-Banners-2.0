@@ -32,9 +32,12 @@ export class AllDetailsTable extends Component{
 		for(var index in adData){
 			var entry = adData[index];
 			if(this.props.filterDetails == "none" || entry['size'] == this.props.filterDetails){
-				entry['uri'] = entry['uri'].replace('public/image/', 'storage/image/');
+
 				JSX_var.push(<AllDetailsEntry updateDetailsCallback={this.props.updateDetailsCallback}
-					id={"banner-" + index} key={"banner-"+index} name={entry['fk_name']} ad_src={entry['uri']} url={entry['url']} click_count={(entry['size'] == "wide" ? entry['clicks'] : "-")}/>);
+					id={"banner-" + index} key={"banner-"+index} name={entry['name']}
+					ad_src={entry['uri']} url={entry['size'] == "wide" ? entry['url'] : "[-]"}
+					size={entry['size']}
+					click_count={(entry['size'] == "wide" ? entry['clicks'] : "-")}/>);
 			}
 		}
 		return JSX_var;
@@ -72,7 +75,7 @@ export class AllDetailsEntry extends Component{
 		return(<tr id={this.props.id} className="">
 				<td className="ad-td-name"><span className="ad-td-name-text">{this.props.name}</span></td>
 				<td className="ad-td-img"><a href={this.props.ad_src} ><img src={this.props.ad_src}/></a></td>
-				<td className="ad-td-url"><a href={this.props.url}>{this.props.url}</a></td>
+				<td className={"ad-td-url " + (this.props.size == "small" ? "url-absent" : "")}>{this.props.size == "wide" ? <a href={this.props.url}>{this.props.url}</a> : this.props.url}</td>
 				<td className="ad-td-clicks"><span className="ad-td-clicks-text">{this.props.click_count}</span></td>
 			</tr>);
 	}

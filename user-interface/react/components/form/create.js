@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component , createRef } from 'react';
 import {DataStore, APICalls} from '../../network/api';
 
 export class CreateButton extends Component{
@@ -13,23 +13,60 @@ export class CreateButton extends Component{
 export class CreationForm extends Component{
 	constructor(props){
 		super(props);
+		this.submit_ref = createRef();
 	}
 	render(){
 		return(<div style={{visibility: this.props.visibility, opacity:this.props.opacity, height: this.props.height}} id="create-form">
 				<div className="form-group">
 					<label htmlFor="name-c">UserName</label>
-					<input className="form-control" id="name-c" placeholder="insert username" required/>
+					<input className="form-control" id="name-c" placeholder="insert username"
+						onKeyDown={
+							(e) => {
+								if(e.key.toLowerCase() == "enter"){
+									this.submit_ref.current.click()
+								}
+							}
+						}
+						required/>
 				</div>
 				<div className="form-group">
 					<label htmlFor="pass-c">Password</label>
-					<input type="password" className="form-control" id="pass-c" placeholder="5 character min" required/>
+					<input type="password" className="form-control" id="pass-c"
+						onKeyDown={
+							(e) => {
+								if(e.key.toLowerCase() == "enter"){
+									this.submit_ref.current.click()
+								}
+							}
+						}
+					placeholder="5 character min" required/>
 				</div>
 				<div className="form-group">
 					<label htmlFor="pass-c-conf">Confirm Password</label>
-					<input type="password" className="form-control" id="pass-c-conf" placeholder="confirmation" required/>
+					<input type="password" className="form-control" id="pass-c-conf"
+					onKeyDown={
+						(e) => {
+							if(e.key.toLowerCase() == "enter"){
+								this.submit_ref.current.click()
+							}
+						}
+					}
+					placeholder="confirmation" required/>
+				</div>
+				<div className="form-group">
+					<label htmlFor="funder-c">Funder Token</label>
+					<input className="form-control" id="funder-c"
+						onKeyDown={
+							(e) => {
+								if(e.key.toLowerCase() == "enter"){
+									this.submit_ref.current.click()
+								}
+							}
+						}
+					placeholder="(optional)Access additional features"/>
 				</div>
 
-				<CreateAPIButton swapPage={this.props.swapPage}  />
+				<CreateAPIButton ButtonRef={this.submit_ref} swapPage={this.props.swapPage}  />
 			</div>);
 	}
 }
@@ -44,15 +81,27 @@ export class CreateAPIButton extends Component{
 	async SendUserCreate(e){
 		var name = document.getElementById("name-c").value;
 		var pass = document.getElementById("pass-c").value;
+		var donor = document.getElementById("funder-c").value;
 		var pass_confirmation = document.getElementById("pass-c-conf").value;
 		this.setState({cursor:"progress"});
 		var response = await APICalls.callCreate(name, pass, pass_confirmation);
 		this.setState({cursor:"pointer"});
-		if("message" in response){
-			if("errors" in response){
+		if("error" in response){
+			this.setState({
+				info_text:response['error'],
+				info_class:"text-danger"
+			});
+		}
+		else if("warn" in response){
+			this.setState({info_text:response['warn'], info_class:"text-warning bg-dark"});
+		}
+		else{
+			this.setState({info_text:response['log'], info_class:"text-success"});
+			var response = await APICalls.callSignIn(name, pass, donor);
+			if("error" in response){
 				var reasons_arr = []
-				for(var reason in response['errors']){
-					reasons_arr.push(response['errors'][reason]);
+				for(var reason in response['error']){
+					reasons_arr.push(response['error'][reason]);
 				}
 				var key_ind = 0;
 				this.setState({
@@ -60,44 +109,13 @@ export class CreateAPIButton extends Component{
 					info_class:"text-danger"
 				});
 			}
-			else{
-				this.setState({
-					info_text:<span>{response['message']}<br/></span>,
-					info_class:"text-danger"
-				});
-			}
-		}
-		else if("warn" in response){
-			this.setState({info_text:response['warn'], info_class:"text-warning bg-dark"});
-		}
-		else{
-			this.setState({info_text:response['log'], info_class:"text-success"});
-			var response = await APICalls.callSignIn(name, pass);
-			if("message" in response){
-				if("errors" in response){
-					var reasons_arr = []
-					for(var reason in response['errors']){
-						reasons_arr.push(response['errors'][reason]);
-					}
-					var key_ind = 0;
-					this.setState({
-						info_text:reasons_arr.map((r) => <span key={key_ind++}>{r}<br/></span> ),
-						info_class:"text-danger"
-					});
-				}
-				else{
-					this.setState({
-						info_text:<span>{response['message']}<br/></span>,
-						info_class:"text-danger"
-					});
-				}
-			}
 			else if("warn" in response){
 				this.setState({info_text:response['warn'], info_class:"text-warning bg-dark"});
 			}
 			else{
 				this.setState({info_text:response['log'], info_class:"text-success"});
-				DataStore.storeAuthToken(response['access_token']);
+				// Token gets stored by server response
+				// DataStore.storeAuthToken(response['access_token']['code']);
 				this.props.swapPage();
 			}
 		}
@@ -106,7 +124,11 @@ export class CreateAPIButton extends Component{
 	render(){
 		return (
 			<div id="create-finish">
-				<button type="button" className="btn btn-secondary" style={{cursor:this.state.cursor}} onClick={this.SendUserCreate}>Create</button>
+				<button type="button" className="btn btn-secondary"
+					style={{cursor:this.state.cursor}}
+					onClick={this.SendUserCreate}
+					ref={this.props.ButtonRef}
+				>Create</button>
 				<p className={this.state.info_class}  id="c-info-field" >{this.state.info_text}</p>
 			</div>);
 	}

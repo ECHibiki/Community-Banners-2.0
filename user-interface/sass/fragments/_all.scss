@@ -1,5 +1,6 @@
-$mobile_px: 1300px;
-$mobile_width: 95vw;
+$small_px: 1300px;
+$mobile_px: 500px;
+$small_width: 95vw;
 
 @mixin master-body-standards {
 		height:100%;
@@ -27,15 +28,15 @@ hr{
 	&-login, &-waiting{
 		width:50vw;
 		@include master-body-standards();
-		@media (max-width:$mobile_px){
-			width:$mobile_width;
+		@media (max-width:$small_px){
+			width:$small_width;
 		}
 	}
 	&-user, &-all {
 		width:70vw;
 		@include master-body-standards();
-		@media (max-width:$mobile_px){
-			width:$mobile_width;
+		@media (max-width:$small_px){
+			width:$small_width;
 		}
 
 	}
@@ -43,8 +44,8 @@ hr{
 	&-mod{
 		width:90vw;
 		@include master-body-standards();
-		@media (max-width:$mobile_px){
-			width:$mobile_width;
+		@media (max-width:$small_px){
+			width:$small_width;
 		}
 
 	}
@@ -63,6 +64,9 @@ hr{
 		}
 		#patreon{
 			height:16vh;
+			margin: auto;
+			display: block;
+			width: max-content;
 		}
 		img{
 			display:block;
@@ -114,7 +118,7 @@ hr{
 			display: block;
 			width:50%;
 			font-size:1.3em;
-			@media (max-width:$mobile_px){
+			@media (max-width:$small_px){
 				font-size:1.4em;
 				width:100%;
 			}
@@ -162,9 +166,8 @@ hr{
 #details-table, #ad-details-table, #mod-details-table{
 	table{
 		margin: 2rem auto;
-		width: 65%;
-
-		@media (max-width:$mobile_px){
+		width: 75%;
+		@media (max-width:$small_px){
         		width:90%;
 		}
 	}
@@ -174,11 +177,58 @@ hr{
 	.ad-th-del th{
 		text-align:left !important;
 	}
-
+	.ad-th-name , .ad-td-name{
+		@media (max-width:$mobile_px){
+			display:none;
+		}
+	}
+	.ad-th-clicks, .ad-td-clicks {
+		@media (max-width:$mobile_px){
+		  display: none;
+		}
+	}
+	.ad-td-img{
+			width:45%;
+		@media (max-width:$small_px){
+			width:unset;
+		}
+	}
 	.ad-td-img img{
 	 	display:block;
-	       	margin:auto;
+   	margin:auto;
 		max-width:100%
+	}
+	.ad-td-url{
+		word-break:break-word;
+		@media (max-width:$mobile_px){
+			width:35%;
+		}
+	}
+	.ad-td-url.url-absent  {
+		text-align: center;
+	}
+	.ad-td-name{
+		@media (max-width:$small_px){
+			word-break:break-word;
+		}
+	}
+	.ad-td-name, .ad-td-ban, .ad-td-clicks{
+		text-align:center;
+	}
+
+	th, td {
+	  padding: 3px 10px;
+	}
+	tr:nth-child(2n+1) {
+	  background: #dbdbdb;
+	}
+	tr{
+		background-color: #c4c4c4;
+	  border-color: #bbb;
+	}
+	.thead-dark > tr {
+	  background-color: #9b9a9a;
+	  border-color: gray;
 	}
 }
 
@@ -251,17 +301,6 @@ hr{
 	}
 }
 
-.ad-td-url{
-	word-break:break-word;
-}
-.ad-td-name{
-	@media (max-width:$mobile_px){
-		word-break:break-word;
-	}
-}
-.ad-td-name, .ad-td-ban, .ad-td-clicks{
-	text-align:center;
-}
 #donation{
 	word-wrap: anywhere;
 }

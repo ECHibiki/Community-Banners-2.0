@@ -25,7 +25,7 @@ settings/ui-settings.js
 
 public/js/app.js*
 public/css/app.css*
-public/storage/image/*.png
-public/storage/image/*.jpg
-public/storage/image/*.jpeg
-public/storage/image/*.gif
+public/storage/image/
+public/storage/tmp/
+!public/storage/image/.gitkeep
+!public/storage/tmp/.gitkeep

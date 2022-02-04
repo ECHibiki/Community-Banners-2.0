@@ -6,7 +6,7 @@ import React from 'react';
 
 import {host_addr, host_name} from '../settings';
 
-var error_404 = {"message":"404", "error":{"server":"Server 404"}, "code":"404"}
+var error_404 = {"error":"Server error with request"}
 
 export class APICalls{
 	static hashPass(name, pass){
@@ -27,18 +27,18 @@ export class APICalls{
 			}
 			})
 			.then(function(res){
-				return res.data;
+				return res.data ;
 			})
 			.catch(function(err){
-				if(err.response == undefined){
+				if(!err.response){
 					console.log(err);
 					return error_404;
 				}
-				return err.response.data;
+				return err.response.data ? err.response.data : error_404;
 			});
 	}
-	static callSignIn(name, pass){
-		var post_data = {"name":name, "pass":pass};
+	static callSignIn(name, pass, donor){
+		var post_data = {"name":name, "pass":pass, "token":donor};
 		return axios.post(host_addr + '/api/login', post_data, {headers:
 			{
 				"accept":"application/json", "content-type":"application/json"
@@ -48,11 +48,11 @@ export class APICalls{
 				return res.data;
 			})
 			.catch(function(err){
-				if(err.response == undefined){
+				if(!err.response){
 					console.log(err);
 					return error_404;
 				}
-				return err.response.data;
+				return err.response.data ? err.response.data : error_404;
 			});
 	}
 	static callCreateNewAd(imagefile, url, hidden_url){
@@ -60,7 +60,7 @@ export class APICalls{
 		post_data.append("image", imagefile);
 		post_data.append("url", url);
 		post_data.append("size", hidden_url);
-		return axios.post(host_addr + '/api/details', post_data, {headers:
+		return axios.post(host_addr + '/api/user/details', post_data, {headers:
 			{
 				"accept":"application/json", "content-type":"multipart/form-data",
 				"authorization": "bearer " + DataStore.getAuthToken()
@@ -70,17 +70,16 @@ export class APICalls{
 				return res.data;
 			})
 			.catch(function(err){
-				if(err.response == undefined){
+				if(!err.response){
 					console.log(err);
 					return error_404;
 				}
-				err.response.data['code'] = err.response.status;
-				return err.response.data;
+				return err.response.data ? err.response.data : error_404;
 			});
 
 	}
 	static callRetrieveUserAds(){
-		return axios.get(host_addr + '/api/details', {headers:
+		return axios.get(host_addr + '/api/user/details', {headers:
 			{
 				"accept":"application/json",
 				"authorization": "bearer " + DataStore.getAuthToken()
@@ -90,10 +89,10 @@ export class APICalls{
 				return res.data;
 			})
 			.catch(function(err){
-				if(err.response == undefined){
+				if(!err.response){
 					return error_404;
 				}
-				return err.response.data;
+				return err.response.data ? err.response.data : error_404;
 
 			});
 
@@ -109,18 +108,18 @@ export class APICalls{
 			})
 			.catch(function(err){
 				console.log(err);
-				if(err.response == undefined){
+				if(!err.response){
 					setterCallBack({[key] : [{fk_name:'404', uri:'' , url:'server out of order'}]});
 					return;
 				}
 				else{
-					setterCallBack({[key] : [{fk_name:err.response.status, uri:'', url:JSON.stringify(err.response.data)}]});
+					setterCallBack({[key] : [{fk_name:err.response.status, uri:'', url:JSON.stringify(err.response.data ? err.response.data : error_404)}]});
 				}
 			});
 
 	}
 	static callRetrieveModAds(setterCallBack, key){
-		axios.get(host_addr + '/api/mod/all', {headers:
+		axios.get(host_addr + '/api/user/mod/all', {headers:
 			{
 				"accept":"application/json",
 				"authorization": "bearer " + DataStore.getAuthToken()
@@ -131,12 +130,12 @@ export class APICalls{
 			})
 			.catch(function(err){
 				console.log(err);
-				if(err.response == undefined){
+				if(!err.response){
 					setterCallBack({[key] : [{fk_name:'404', uri:'' , url:'server out of order'}]});
 					return;
 				}
 				else{
-					setterCallBack({[key] : [{fk_name:err.response.status, uri:'', url:JSON.stringify(err.response.data)}]});
+					setterCallBack({[key] : [{fk_name:err.response.status, uri:'', url:JSON.stringify(err.response.data ? err.response.data : error_404)}]});
 				}
 			});
 
@@ -144,7 +143,7 @@ export class APICalls{
 
 	static callRemoveUserAds(uri, url){
 		var post_data = {"uri":uri, "url":url};
-		return axios.post(host_addr + '/api/removal', post_data, {headers:
+		return axios.post(host_addr + '/api/user/removal', post_data, {headers:
 			{
 				"accept":"application/json",
 				"authorization": "bearer " + DataStore.getAuthToken()
@@ -154,16 +153,16 @@ export class APICalls{
 				return res.data;
 			})
 			.catch(function(err){
-				if(err.response == undefined){
+				if(!err.response){
 					console.log(err);
 					return error_404;
 				}
-				return err.response.data;
+				return err.response.data ? err.response.data : error_404;
 			});
 	}
 	static callModRemoveIndividualAds(name, uri, url){
 		var post_data = {"name": name, "uri":uri, "url":url};
-		return axios.post(host_addr + '/api/mod/individual', post_data, {headers:
+		return axios.post(host_addr + '/api/user/mod/individual', post_data, {headers:
 			{
 				"accept":"application/json",
 				"authorization": "bearer " + DataStore.getAuthToken()
@@ -173,16 +172,16 @@ export class APICalls{
 				return res.data;
 			})
 			.catch(function(err){
-				if(err.response == undefined){
+				if(!err.response){
 					console.log(err);
 					return error_404;
 				}
-				return err.response.data;
+				return err.response.data ? err.response.data : error_404;
 			});
 	}
 	static callModRemoveAllUserAds(name){
 		var post_data = {"name": name};
-		return axios.post(host_addr + '/api/mod/purge', post_data, {headers:
+		return axios.post(host_addr + '/api/user/mod/purge', post_data, {headers:
 			{
 				"accept":"application/json",
 				"authorization": "bearer " + DataStore.getAuthToken()
@@ -192,17 +191,16 @@ export class APICalls{
 				return res.data;
 			})
 			.catch(function(err){
-				if(err.response == undefined){
-					console.log(err);
+				if(!err.response){
 					return error_404;
 				}
-				return err.response.data;
+				return err.response.data ? err.response.data : error_404;
 			});
 	}
 
 	static callModBanUser(name,hard){
 		var post_data = {"target": name,"hard": hard};
-		return axios.post(host_addr + '/api/mod/ban', post_data, {headers:
+		return axios.post(host_addr + '/api/user/mod/ban', post_data, {headers:
 			{
 				"accept":"application/json",
 				"authorization": "bearer " + DataStore.getAuthToken()
@@ -212,11 +210,11 @@ export class APICalls{
 				return res.data;
 			})
 			.catch(function(err){
-				if(err.response == undefined){
+				if(!err.response){
 					console.log(err);
 					return error_404;
 				}
-				return err.response.data;
+				return err.response.data ? err.response.data : error_404;
 			});
 	}
 
@@ -228,12 +226,5 @@ export class DataStore{
 			this.token = Cookies.get("freeadstoken");
 		}
 		return this.token;
-	}
-	static storeAuthToken(token){
-		this.token = token;
-		if(this.token != undefined){
-			Cookies.set("freeadstoken", token, {expires: 1,  path: '/',//, domain: host_name, secure: true,
-				sameSite:'strict'})
-		}
 	}
 }

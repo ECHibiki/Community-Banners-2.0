@@ -2,7 +2,6 @@ package ginterface
 
 import (
   "fmt"
-  "time"
   "encoding/json"
   "io/ioutil"
 
@@ -14,6 +13,7 @@ import (
 
 type GinSettings struct{
   Domain string
+  RejectCreation bool
 }
 
 var gin_engine *gin.Engine
@@ -29,7 +29,10 @@ func Init(port string){
   json.Unmarshal(setting_json_bytes, &gin_settings)
 
   // NGINX handles statics such as .html, .js, .css and image media
+
+  // TODO: for donors allow board banners to be added, do this on the UI too
   gin_engine = gin.Default()
+  gin_engine.Use(JWTDecodeMiddleware())
   {
     gin_engine.GET("/banner", controllers.GenerateAdPage)
     gin_engine.GET("/req", controllers.RedirectSiteRequest)
@@ -38,12 +41,15 @@ func Init(port string){
     {
       public_group.GET("banner", controllers.GenerateAdJSON)
       public_group.GET("all", controllers.GetLimitedInfo)
-      public_group.POST("create", controllers.CreateNewUser)
-      // public_group.POST("create", controllers.RejectUserCreation)
-      public_group.POST("login", controllers.LoginUser)
+      if gin_settings.RejectCreation{
+        public_group.POST("create", controllers.RejectUserCreation)
+      } else{
+        public_group.POST("create", controllers.CreateNewUser)
+      }
+      public_group.POST("login", controllers.LoginUser(gin_settings.Domain))
     }
 
-    logged_group := gin_engine.Group("/api/")
+    logged_group := public_group.Group("user/")
     logged_group.Use(AuthenticationMiddleware())
     logged_group.Use(BannedMiddleware())
     {
@@ -69,27 +75,27 @@ func Init(port string){
 /* middleware */
 // return function instead of handling directly to potentially pass in command line arguments on initialization
 
+func JWTDecodeMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+    // VALIDATE JWT
+    token_string, _ := c.Cookie("freeadstoken")
+    name, is_donor, is_mod, err := bannerjwt.IsAuth(token_string)
+    c.Set("name", name)
+    c.Set("is_donor", is_donor)
+    c.Set("is_mod", is_mod)
+    c.Set("valid_jwt", err == nil)
+    c.Next()
+	}
+}
 func AuthenticationMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
     // VALIDATE JWT
-    token_string, _ := c.Cookie("jwt")
-    name, is_mod, err := bannerjwt.IsAuth(token_string)
-    if err != nil{
+    valid := c.MustGet("valid_jwt").(bool)
+    if !valid{
       // ABORT IF INVALID
-      c.JSON(401 , gin.H{"warn": "You are not logged in"})
+      c.JSON(401 , gin.H{"error": "You are not logged in"})
       c.Abort()
     }
-    token, err := bannerjwt.CreateToken(name , is_mod)
-    if err != nil{
-      // ABORT IF INVALID
-      c.SetCookie("jwt", "", -1, "/", gin_settings.Domain, true, true)
-      c.JSON(500 , gin.H{"error": "Key Create Error"})
-      c.Abort()
-    }
-    c.SetCookie("jwt", token, int(time.Now().Add(time.Hour * 24).Unix()), "/",
-      gin_settings.Domain, true, true)
-    c.Set("name", name)
-    c.Set("is_mod", is_mod)
     c.Next()
 	}
 }
@@ -106,8 +112,8 @@ func BannedMiddleware() gin.HandlerFunc {
       c.Abort()
     }
     if len(banned_rows) != 0{
-      c.SetCookie("jwt", "", -1, "/", gin_settings.Domain, true, true)
-      c.JSON(401, gin.H{"warn": "You've been banned..."})
+      c.SetCookie("freeadstoken", "", -1, "/", gin_settings.Domain, true, true)
+      c.JSON(401, gin.H{"error": "You've been banned..."})
       c.Abort()
     }
     c.Next()
@@ -126,7 +132,7 @@ func ModeratorMiddleware() gin.HandlerFunc {
       c.Abort()
     }
     if len(mod_rows) == 0{
-      c.JSON(401, gin.H{"warn": "You are not a moderator"})
+      c.JSON(401, gin.H{"error": "You are not a moderator"})
       c.Abort()
     }
     c.Next()

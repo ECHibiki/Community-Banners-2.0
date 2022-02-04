@@ -50,24 +50,11 @@ export class AdRemovalAPIButton extends Component{
 		this.setState({cursor:"progress"});
 		var response = await APICalls.callRemoveUserAds(uri,url);
 		this.setState({cursor:"pointer"});
-		if("message" in response){
-			if("errors" in response){
-				var reasons_arr = []
-				for(var reason in response['errors']){
-					reasons_arr.push(response['errors'][reason]);
-				}
-				var key_ind = 0;
-				this.setState({
-					info_text:reasons_arr.map((r) => <span key={key_ind++}>{r}<br/></span> ),
-					info_class:"text-danger"
-				});
-			}
-			else{
-				this.setState({
-					info_text:<span>{response['message']}<br/></span>,
-					info_class:"text-danger"
-				});
-			}
+		if("error" in response){
+			this.setState({
+				info_text:response['error'],
+				info_class:"text-danger"
+			});
 		}
 		else if("warn" in response){
 			this.setState({info_text:response['warn'], info_class:"text-warning bg-dark"});

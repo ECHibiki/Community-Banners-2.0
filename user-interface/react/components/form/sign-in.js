@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component , createRef } from 'react';
 import {DataStore, APICalls} from '../../network/api';
 
 export class SignInButton extends Component{
@@ -16,18 +16,47 @@ export class SignInButton extends Component{
 export class SignInForm extends Component{
 	constructor(props){
 		super(props);
+		this.submit_ref = createRef();
 	}
 	render(){
 		return(<div style={{visibility: this.props.visibility, opacity: this.props.opacity, height: this.props.height}} id="sign-form">
 				<div className="form-group">
 					<label htmlFor="name-si">UserName</label>
-					<input className="form-control" id="name-si" placeholder="insert username" required/>
+					<input className="form-control" id="name-si" placeholder="insert username"
+						onKeyDown={
+							(e) => {
+								if(e.key.toLowerCase() == "enter"){
+									this.submit_ref.current.click()
+								}
+							}
+						}
+					required/>
 				</div>
 				<div className="form-group">
 					<label htmlFor="pass-si">Password</label>
-					<input type="password" className="form-control" id="pass-si" placeholder="" required/>
+					<input type="password" className="form-control" id="pass-si"
+						onKeyDown={
+							(e) => {
+								if(e.key.toLowerCase() == "enter"){
+									this.submit_ref.current.click()
+								}
+							}
+						}
+					placeholder="" required/>
 				</div>
-				<SignInAPIButton swapPage={this.props.swapPage}  />
+				<div className="form-group">
+					<label htmlFor="funder-si">Funder Token</label>
+					<input className="form-control" id="funder-si"
+						onKeyDown={
+							(e) => {
+								if(e.key.toLowerCase() == "enter"){
+									this.submit_ref.current.click()
+								}
+							}
+						}
+					placeholder="(optional)Access additional features"/>
+				</div>
+				<SignInAPIButton ButtonRef={this.submit_ref} swapPage={this.props.swapPage}  />
 			</div>);
 	}
 }
@@ -42,34 +71,23 @@ export class SignInAPIButton extends Component{
 	async SendUserSignIn(e){
 		var name = document.getElementById("name-si").value;
 		var pass = document.getElementById("pass-si").value;
+		var donor = document.getElementById("funder-si").value;
 		this.setState({cursor:"progress"});
-		var si_response = await APICalls.callSignIn(name, pass);
+		var si_response = await APICalls.callSignIn(name, pass , donor);
 		this.setState({cursor:"pointer"});
-		if("message" in si_response){
-			if("errors" in si_response){
-				var reasons_arr = []
-				for(var reason in si_response['errors']){
-					reasons_arr.push(si_response['errors'][reason]);
-				}
-				var key_ind = 0;
-				this.setState({
-					info_text:reasons_arr.map((r) => <span key={key_ind++}>{r}<br/></span> ),
-					info_class:"text-danger"
-				});
-			}
-			else{
-				this.setState({
-					info_text:<span>{response['message']}<br/></span>,
-					info_class:"text-danger"
-				});
-			}
+		if("error" in si_response){
+			this.setState({
+				info_text:si_response['error'],
+				info_class:"text-danger"
+			});
 		}
 		else if("warn" in si_response){
 			this.setState({info_text:si_response['warn'], info_class:"text-warning bg-dark"});
 		}
 		else{
 			this.setState({info_text:si_response['log'], info_class:"text-success"});
-			DataStore.storeAuthToken(si_response['access_token']);
+			// token gets stored by server response
+			// DataStore.storeAuthToken(si_response['access_token']['code']);
 			this.props.swapPage();
 		}
 	}
@@ -77,7 +95,9 @@ export class SignInAPIButton extends Component{
 	render(){
 		return (
 			<div id="sign-in-finish">
-				<button type="button" className="btn btn-secondary" style={{cursor:this.state.cursor}} onClick={this.SendUserSignIn}>Submit</button>
+				<button type="button" className="btn btn-secondary" style={{cursor:this.state.cursor}}
+				ref={this.props.ButtonRef}
+				onClick={this.SendUserSignIn}>Submit</button>
 				<p className={this.state.info_class}  id="si-info-field" >{this.state.info_text}</p>
 			</div>);
 	}

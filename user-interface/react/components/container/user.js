@@ -26,18 +26,9 @@ export class UserContainer extends Component{
 
 	async UpdateDetails(){
 		var d_response = await APICalls.callRetrieveUserAds();
-		if("message" in d_response){
-			if("errors" in d_response){
-				var reasons_arr = []
-				for(var reason in d_response['errors']){
-					reasons_arr.push(d_response['errors'][reason]);
-				}
-				var key_ind = 0;
-				this.setState({err_text:reasons_arr.map((r) => <span key={key_ind++}>{r}<br/></span> ), war_text: "", suc_text:""});
-			}
-			else{
-				this.setState({err_text:<span>Authorization Failed, Please Refresh<br/></span>});
-			}
+		if("error" in d_response){
+			var key_ind = 0;
+			this.setState({err_text:d_response['error'], war_text: "", suc_text:""});
 		}
 		else if("warn" in d_response){
 			this.setState({war_text:d_response['warn']});
