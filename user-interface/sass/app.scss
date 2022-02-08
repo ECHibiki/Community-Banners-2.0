@@ -1,8 +1,9 @@
-// Fonts 
+// Fonts
         @import url("https://fonts.googleapis.com/css?family=Nunito:200,600");
 
-// Styles 
+// Styles
 	@import '~bootstrap/scss/bootstrap';
 	@import 'fragments/defaults';
 
-	@import 'fragments/all'
+	@import 'fragments/all';
+	@import 'fragments/_v2_changes';

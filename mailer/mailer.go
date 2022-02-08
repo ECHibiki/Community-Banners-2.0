@@ -88,11 +88,15 @@ func sendEmailToAll(mail_body string , attatchment string, file_name string, mai
   return "Sent"
 }
 
-func SendBannerEmail(name string, file_base64 string, url string, uri string , original_filename string) string {
+func SendBannerEmail(name string, file_base64 string, url string, uri string , original_filename string , board string) string {
   // Get the template
+  if board == ""{
+    board = "*"
+  }
   params := map[string]string{
     "time": time.Now().Format(time.UnixDate) + " - UnixDate" ,
     "name": name ,
+    "board": board ,
     "url": url ,
     "uri": uri ,
     "image": "https://banners.kissu.moe/" + uri ,

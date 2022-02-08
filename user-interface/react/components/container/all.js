@@ -3,6 +3,7 @@ import {DataStore, APICalls} from '../../network/api';
 import {Sort} from '../sorting/sort';
 import {AllDetailsTable} from '../table/all-details-table';
 import {Link} from "react-router-dom";
+
 export class AllContainer extends Component{
 	constructor(props){
 		super(props);

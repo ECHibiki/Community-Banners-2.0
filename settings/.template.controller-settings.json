@@ -10,4 +10,11 @@
   "SmallDimensionsY": 300,
   "WideDimensionsX": 500,
   "WideDimensionsY": 90,
+  "RestrictedBoards": ["ec" , "test" , "trans"],
+  "ValidBoards": [
+    "qa" , "jp" , "win",
+    "cry" , "poll" , "b",
+    "f" , "ec" , "test" ,
+    "trans"
+  ]
 }

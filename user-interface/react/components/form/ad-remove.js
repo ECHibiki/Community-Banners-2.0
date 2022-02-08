@@ -8,7 +8,7 @@ export class AdRemovalForm extends Component{
 		this.state = {display: "none", height: "10em"};
 	}
 	render(){
-		return(<div style={{display: this.state.display, height: this.state.height}} id="ad-remove-form">
+		return(<div style={{display: this.state.display, height: this.state.height}} className="ad-remove-form">
 			<form>
 				<input type="hidden" id="r-uri" required/>
 				<input type="hidden" id="r-url" required/>
@@ -25,7 +25,7 @@ export class AdRemovalButton extends Component{
 	}
 
 	render(){
-		return (<div id="ad-remove">
+		return (<div className="ad-remove">
 			<Popup trigger={<button type="button" className="btn btn-danger btn-sm">Remove</button>}>
   			{close => (
   				<div>
@@ -68,9 +68,9 @@ export class AdRemovalAPIButton extends Component{
 
 	render(){
 		return (
-      <div id="ad-remove">
+      <div className="ad-remove">
 				<button type="button" className="btn btn-secondary" style={{cursor:this.state.cursor}} onClick={this.RemoveAd}>Remove</button>
-  			<p className={this.state.info_class}  id="cr-info-field" >{this.state.info_text}</p>
+  			<p className={"err-field " + this.state.info_class}  id="cr-info-field" >{this.state.info_text}</p>
 			</div>);
 	}
 }

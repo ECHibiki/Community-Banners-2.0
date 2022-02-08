@@ -73,7 +73,7 @@ func checkIsMod(name string) bool{
 }
 func checkIsDonor(token string) bool{
   token_get , err := bannerdb.CrossDBQuery(`
-    SELECT %s.token FROM mods
+    SELECT token FROM %[1]s.whitelist_tokens
     WHERE token = ?
   `, []interface{}{token})
   if err != nil{

@@ -129,7 +129,7 @@ export class CreateAPIButton extends Component{
 					onClick={this.SendUserCreate}
 					ref={this.props.ButtonRef}
 				>Create</button>
-				<p className={this.state.info_class}  id="c-info-field" >{this.state.info_text}</p>
+				<p className={"err-field " + this.state.info_class}  id="c-info-field" >{this.state.info_text}</p>
 			</div>);
 	}
 

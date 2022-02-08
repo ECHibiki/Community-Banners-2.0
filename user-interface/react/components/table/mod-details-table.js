@@ -12,7 +12,8 @@ export class ModDetailsTable extends Component{
 		for(var index in adData){
 			var entry = adData[index];
 			entry['uri'] = entry['uri'].replace('public/image/', 'storage/image/');
-			JSX_var.push(<ModDetailsEntry updateDetailsCallback={this.props.updateDetailsCallback} id={"banner-" + index} key={"banner-"+index} ad_src={entry['uri']} url={entry['url']} name={entry['name']} ban={entry['hardban']}/>);
+			JSX_var.push(<ModDetailsEntry updateDetailsCallback={this.props.updateDetailsCallback} id={"banner-" + index}
+			key={"banner-"+index} ad_src={entry['uri']} url={entry['url']} name={entry['name']} ban={entry['hardban']}/>);
 		}
 		return JSX_var;
 	}
@@ -23,8 +24,8 @@ export class ModDetailsTable extends Component{
 				<caption>ありがとうございます!</caption>
 				<thead className="thead-dark">
 					<tr>
-						<th className="ad-th-ban">Ban</th>
 						<th className="ad-th-del">Delete</th>
+						<th className="ad-th-ban">Ban</th>
 						<th className="ad-th-name">Name</th>
 						<th className="ad-th-img">Image</th>
 						<th className="ad-th-url">URL</th>
@@ -71,7 +72,7 @@ export class ModRemovalButton extends Component{
 	}
 
 	render(){
-		return (<div id="ad-remove">
+		return (<div className="ad-remove">
 			<Popup trigger={<button type="button" className="btn btn-danger btn-sm">Remove</button>}>
 			{close => (
 				<div>
@@ -90,7 +91,7 @@ export class ModBanButton extends Component{
 	}
 
 	render(){
-		return (<div id="ad-remove">
+		return (<div className="ad-remove">
 			<Popup trigger={<button type="button" className="btn btn-info btn-sm">Ban</button>}>
 			{close => (
 				<div>
@@ -135,7 +136,7 @@ export class ModIndividualRemovalAPIButton extends Component{
 	}
 
 	render(){
-		return (<div id="ad-remove-soft"><button type="button" className="btn btn-danger btn-sm" onClick={this.RemoveAd}>Remove Selected</button>
+		return (<div className="ad-remove-soft"><button type="button" className="btn btn-danger btn-sm" onClick={this.RemoveAd}>Remove Selected</button>
 			<p className={this.state.info_class}  id="mi-info-field" >{this.state.info_text}</p>
 			</div>);
 	}

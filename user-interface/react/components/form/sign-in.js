@@ -88,7 +88,7 @@ export class SignInAPIButton extends Component{
 			this.setState({info_text:si_response['log'], info_class:"text-success"});
 			// token gets stored by server response
 			// DataStore.storeAuthToken(si_response['access_token']['code']);
-			this.props.swapPage();
+			this.props.swapPage(si_response['donor'] == true);
 		}
 	}
 
@@ -98,7 +98,7 @@ export class SignInAPIButton extends Component{
 				<button type="button" className="btn btn-secondary" style={{cursor:this.state.cursor}}
 				ref={this.props.ButtonRef}
 				onClick={this.SendUserSignIn}>Submit</button>
-				<p className={this.state.info_class}  id="si-info-field" >{this.state.info_text}</p>
+				<p className={"err-field " + this.state.info_class}  id="si-info-field" >{this.state.info_text}</p>
 			</div>);
 	}
 

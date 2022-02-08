@@ -14,7 +14,7 @@ export class LoginContainer extends Component{
 
 	SignInOnClick(){
 		if(this.state.si_visibility=="unset"){
-			this.setState({si_visibility:"initial", si_height:"17em", si_opacity:"1"});
+			this.setState({si_visibility:"initial", si_height:"max-content", si_opacity:"1"});
 		}
 		else{
 			this.setState({si_visibility:"unset", si_height:"0em", si_opacity:"0"});
@@ -23,7 +23,7 @@ export class LoginContainer extends Component{
 
 	CreateOnClick(){
 		if(this.state.c_visibility=="unset"){
-			this.setState({c_visibility:"initial", c_height:"22.5em", c_opacity:"1"});
+			this.setState({c_visibility:"initial", c_height:"max-content", c_opacity:"1"});
 		}
 		else{
 			this.setState({c_visibility:"unset", c_height:"0em", c_opacity:"0"});

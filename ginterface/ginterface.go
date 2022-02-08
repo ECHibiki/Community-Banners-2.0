@@ -56,6 +56,7 @@ func Init(port string){
       logged_group.GET("details", controllers.AccessInfo)
       logged_group.POST("details", controllers.CreateBanner)
       logged_group.POST("removal", controllers.RemoveBanner)
+      logged_group.POST("token", controllers.TestToken(gin_settings.Domain))
 
       mod_group := logged_group.Group("mod/")
       mod_group.Use(ModeratorMiddleware())

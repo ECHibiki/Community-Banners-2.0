@@ -9,8 +9,8 @@ import (
   "github.com/ECHibiki/Community-Banners-2.0/bannerdb"
 )
 // NAME CHECK
-func returnAdPage(name string, size string , ip string) string{
-  ad_data := getRandomEntry(name , size , ip)
+func returnAdPage(name string, size string , ip string , board string) string{
+  ad_data := getRandomEntry(name , size , ip , board)
   if len(ad_data) == 0{
     return "asdf no ads";
   }
@@ -20,27 +20,47 @@ func returnAdPage(name string, size string , ip string) string{
   return templater.ReturnFilledTemplate("./templates/banner.html" , ad_data[0])
 }
 // NAME CHECK
-func getRandomEntry(name string,  size string , ip string) []map[string]string{
+func getRandomEntry(name string,  size string , ip string , board string) []map[string]string{
   if size != "wide" && size != "small"{
     size = "%"
   }
-  query_arr := []interface{}{size , ip , name}
-  result , err := bannerdb.Query(`
-    SELECT ads.fk_name AS name, uri , url, size, clicks FROM ads
+  fmt.Println(size)
+  filter := ""
+  var filter_args []interface{}
+  if board == ""{
+    for _, r_board := range controller_settings.RestrictedBoards{
+      if filter == "" {
+        filter += " ( board != ? "
+      } else{
+        filter += " AND board != ? "
+      }
+      filter_args = append(filter_args , r_board)
+    }
+    filter += " ) AND "
+  } else{
+    filter += " ( board = ? OR board = '' ) AND "
+    filter_args = append(filter_args , board)
+  }
+
+  query := fmt.Sprintf(`
+    SELECT ads.fk_name AS name, uri , url, size, clicks, board FROM ads
     LEFT JOIN bans ON ads.fk_name = bans.fk_name
-    WHERE ( hardban IS NULL AND ads.size LIKE ? )
-      OR bans.ip = ?
-      OR bans.fk_name = ?
-    ORDER BY RAND() LIMIT 1;
-    ` , query_arr)
+    WHERE %s
+      ( hardban IS NULL OR bans.ip = ? OR bans.fk_name = ? )
+      AND ads.size LIKE ?
+     ORDER BY RAND() LIMIT 1;
+    ` , filter )
+  query_arr := append(filter_args , []interface{}{ ip , name , size ,}...)
+  fmt.Println(query , query_arr)
+  result , err := bannerdb.Query(query , query_arr)
   if err != nil{
     panic(err)
   }
   return result
 }
 
-func returnAdJson(name string, size string , ip string) (gin.H){
-  ad_data := getRandomEntry(name , size, ip)
+func returnAdJson(name string, size string , ip string , board string) (gin.H){
+  ad_data := getRandomEntry(name , size , ip , board)
   if len(ad_data) == 0{
     return gin.H{
       "url": "",
@@ -48,36 +68,42 @@ func returnAdJson(name string, size string , ip string) (gin.H){
       "name":"",
       "size":"",
       "clicks":"",
+      "board":"",
     }
   }
   ad_data[0]["url"] = fmt.Sprintf("/req?s=%v&f=%v" ,
      url.QueryEscape(ad_data[0]["url"]) , ad_data[0]["uri"] )
-  // ads.fk_name , uri , url, size, clicks
-  fmt.Println(ad_data[0])
+  // ads.fk_name , uri , url, size, clicks , board
   return gin.H{
     "url": ad_data[0]["url"],
     "uri": ad_data[0]["uri"],
     "name":ad_data[0]["name"],
     "size":ad_data[0]["size"],
     "clicks":ad_data[0]["clicks"],
+    "board":ad_data[0]["board"],
   }
 }
 
 func getLimitedEntries(name string ,  ip string ) []map[string]string{
-  ban_filter_query := ""
-  ban_filter_args := []interface{}{}
+  filter := ""
+  var filter_args []interface{}
   if name == "" || !checkBanned(name , ip) {
-    ban_filter_query = "WHERE bans.fk_name = ? OR bans.ip != ? OR bans.ip IS NULL"
-    ban_filter_args = []interface{}{name, ip}
+    filter += "WHERE (bans.fk_name = ? OR bans.ip != ? OR bans.ip IS NULL) "
+    filter_args = append(filter_args , []interface{}{name, ip}...)
   }
-  fmt.Println(fmt.Sprintf(`
-    SELECT ads.fk_name AS name , uri , url, size, clicks FROM ads
-    LEFT JOIN bans ON ads.fk_name = bans.fk_name
-    %s ORDER BY ads.id DESC` , ban_filter_query))
+  for _, board := range controller_settings.RestrictedBoards{
+    if filter == "" {
+      filter += "WHERE board != ? "
+    } else{
+      filter += " AND board != ? "
+    }
+    filter_args = append(filter_args , board)
+  }
+
   entry_get , err := bannerdb.Query(fmt.Sprintf(`
-    SELECT ads.fk_name AS name , uri , url, size, clicks FROM ads
+    SELECT ads.fk_name AS name , uri , url, size, clicks, board FROM ads
     LEFT JOIN bans ON ads.fk_name = bans.fk_name
-    %s ORDER BY ads.id DESC` , ban_filter_query) , ban_filter_args)
+    %s ORDER BY ads.id DESC` , filter) , filter_args)
   if err != nil{
     panic(err)
   }

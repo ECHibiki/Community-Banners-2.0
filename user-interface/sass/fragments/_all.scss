@@ -106,7 +106,7 @@ hr{
 		padding-left:1vw;
 	}
 
-	#si-button-container, #ad-button-container, #all-container, #mod-container{
+	#si-button-container, #ad-button-container, #all-container, #mod-container , #donor-button-container{
 		background-color:#e1e1e1;
 		width: 50%;
 		margin: auto;
@@ -118,19 +118,26 @@ hr{
 			display: block;
 			width:50%;
 			font-size:1.3em;
-			@media (max-width:$small_px){
-				font-size:1.4em;
-				width:100%;
+			@media (max-width:$mobile_px){
+				width:90%;
 			}
 		}
+		@media (max-width:$small_px){
+			width:100%;
+		}
 	}
-
-	#ad-button-container{
+	#ad-button-container , #donor-button-container{
 		width:65%;
 		padding:0;
 		margin-top: 2rem;
+		@media (max-width:$mobile_px){
+			width:90%;
+		}
 	}
-
+}
+#donor-button-container > .cad-info-field{
+	padding:0 5px;
+	margin-bottom: 0;
 }
 
 #sign-in-, #create-, #ad-create-{
@@ -140,6 +147,11 @@ hr{
 	&finish{
 		padding-top: 0.2em;
 	}
+}
+#ad-board-c {
+  display: block;
+  padding-top: 1.5px;
+  height: 28px;
 }
 
 #create-form, #sign-form, #ad-create-form{
@@ -155,6 +167,13 @@ hr{
 	margin: auto;
 	margin-top: 0.25em;
 	margin-bottom: 0.1em;
+	@media (max-width:$mobile_px){
+					width:99%;
+	}
+}
+#cad-info-field{
+	margin-bottom:0;
+	margin-top:4px;
 }
 #sample-banner{
 	padding-bottom:1em;
@@ -187,12 +206,21 @@ hr{
 		  display: none;
 		}
 	}
+	.ad-td-board {
+		text-align: center;
+	}
+	.ad-th-board, .ad-td-board {
+		@media (max-width:$mobile_px){
+		  display: none;
+		}
+	}
 	.ad-td-img{
 			width:45%;
 		@media (max-width:$small_px){
 			width:unset;
 		}
 	}
+
 	.ad-td-img img{
 	 	display:block;
    	margin:auto;
@@ -212,7 +240,7 @@ hr{
 			word-break:break-word;
 		}
 	}
-	.ad-td-name, .ad-td-ban, .ad-td-clicks{
+	.ad-td-name, .ad-td-ban, .ad-td-clicks , .ad-td-del{
 		text-align:center;
 	}
 
@@ -317,4 +345,12 @@ hr{
 	@media (max-width:585px){
 		float:left;
 	}
+}
+
+.form-text.text-muted {
+  display: block;
+}
+
+.err-field {
+	margin-bottom: 0;
 }

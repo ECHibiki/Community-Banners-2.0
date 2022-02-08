@@ -20,7 +20,6 @@ func validateIPCreation(ip string) bool{
   if err != nil{
     panic (err)
   }
-  fmt.Println(rows, cooldown)
   return len(rows) == 0
 }
 

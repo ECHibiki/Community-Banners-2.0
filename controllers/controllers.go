@@ -31,6 +31,8 @@ type ControllerSettings struct{
   SmallDimensionsY int
   WideDimensionsX int
   WideDimensionsY int
+  RestrictedBoards []string
+  ValidBoards []string
 }
 
 type Login struct{
@@ -42,6 +44,14 @@ type Login struct{
 
 type UserRemoval struct{
   URI string `json:"uri"`
+}
+
+type ModAction struct {
+  Name string `json:"name"`
+  Target string `json:"target"`
+  URI string `json:"uri"`
+  URL string `json:"url"`
+  Hard *int `json:"hard"`
 }
 
 var controller_settings ControllerSettings
@@ -63,11 +73,12 @@ func init(){
 func GenerateAdPage(c *gin.Context){
   name := getGet(c, "name")
   size := getParam(c ,"size")
+  board := getParam(c ,"board")
   // https://github.com/gin-gonic/gin/issues/2697
   // If it is a trusted IP (which means the request is redirected by a proxy),
   // then it will try to parse the "real user IP" from X-Forwarded-For/X-Real-Ip header.
   ip := c.ClientIP()
-  page := returnAdPage(name , size, ip)
+  page := returnAdPage(name , size, ip , board)
 
   c.Header("Content-Type", "text/html")
   c.String(200 , page)
@@ -76,8 +87,9 @@ func GenerateAdPage(c *gin.Context){
 func GenerateAdJSON(c *gin.Context){
   name := getGet(c, "name")
   size := getParam(c ,"size")
+  board := getParam(c ,"board")
   ip := c.ClientIP()
-  ad_gin_h := returnAdJson(name , size, ip)
+  ad_gin_h := returnAdJson(name , size, ip , board)
   c.JSON(200, ad_gin_h)
 }
 /* File: PageGenerationController */
@@ -86,7 +98,7 @@ func GetLimitedInfo(c *gin.Context){
   name := getGet(c, "name")
   ip := c.ClientIP()
   ad_data := getLimitedEntries(name , ip);
-  var ad_gin_h []gin.H
+  ad_gin_h := []gin.H{}
   for _ , ad := range ad_data{
     gh := gin.H{
       "url": ad["url"],
@@ -94,6 +106,7 @@ func GetLimitedInfo(c *gin.Context){
       "name":ad["name"],
       "size":ad["size"],
       "clicks":ad["clicks"],
+      "board":ad["board"],
     }
     ad_gin_h = append(ad_gin_h , gh)
   }
@@ -199,7 +212,7 @@ func LoginUser(domain string) gin.HandlerFunc{
     login.Token  = strings.TrimSpace(login.Token)
     is_donor := false
     if login.Token != ""{
-      is_donor := checkIsDonor(login.Token)
+      is_donor = checkIsDonor(login.Token)
       if !is_donor{
         c.JSON( 401 , gin.H{"error": "Your token was not entered correctly"});
         return
@@ -223,6 +236,35 @@ func LoginUser(domain string) gin.HandlerFunc{
       // },
       // "expires_in" : time.Now().Add(time.Hour * 24).Unix(),
       "log" : "Successfully Logged In",
+      "donor" : is_donor,
+      "mod" : is_mod,
+    })
+  }
+}
+/* File: UserSignInController */
+// test a token if authenticated
+func TestToken(domain string) gin.HandlerFunc{
+  return func(c *gin.Context){
+    var login Login
+    c.BindJSON(&login)
+    name := getGet(c , "name")
+    is_mod := getGet(c , "is_mod") == "true"
+
+    login.Token  = strings.TrimSpace(login.Token)
+    is_donor := checkIsDonor(login.Token)
+    if !is_donor{
+      c.JSON( 401 , gin.H{"error": "Your token was not entered correctly"});
+      return
+    }
+
+    token , err := bannerjwt.CreateToken(name , is_donor , is_mod)
+    if err != nil{
+      panic (err)
+    }
+    c.SetCookie("freeadstoken", token, int(time.Now().Add(time.Hour * 24).Unix()), "/",
+      domain, true, true)
+    c.JSON(200 , gin.H{
+      "log" : "Successfully verified token",
     })
   }
 }
@@ -231,16 +273,19 @@ func LoginUser(domain string) gin.HandlerFunc{
 func AccessInfo(c *gin.Context){
   name := getGet(c , "name")
   is_mod := getGet(c , "is_mod")
+  is_donor := getGet(c , "is_donor")
   ad_arr := getUserData(name);
   c.JSON(200 , gin.H{
     "name" : name,
-    "mod" : is_mod,
+    "mod" : is_mod == "true",
+    "donor" : is_donor == "true",
     "ads" : ad_arr,
   })
 }
 /* File: ConfidentialInfoController */
 func CreateBanner(c *gin.Context){
   ip := c.ClientIP()
+  is_donor := getGet(c , "is_donor")
   cooldown_timer := doCreationCooldown(ip)
   if cooldown_timer < 0{
     c.JSON(401 , gin.H{"error": "Posting too fast(" + strconv.Itoa(cooldown_timer) + ") seconds"})
@@ -271,7 +316,24 @@ func CreateBanner(c *gin.Context){
 
   size := c.PostForm("size")
   url := c.PostForm("url")
+  board := c.PostForm("board")
   name := getGet(c, "name")
+
+  if is_donor == "false" {
+    board = ""
+  } else if board != ""{
+    found := false
+    for _ , v_board := range controller_settings.ValidBoards{
+      if v_board == board{
+        found = true
+        break
+      }
+    }
+    if !found {
+      c.JSON(401 , gin.H{"error": "The given board is invalid"})
+      return
+    }
+  }
 
   if size == "wide" && url == ""{
     c.JSON(401 , gin.H{"error": "URL Required" })
@@ -320,9 +382,9 @@ func CreateBanner(c *gin.Context){
     os.Remove(controller_settings.PublicPath + uri)
     panic(err)
   }
-  addBanner(name , uri , url, ip ,  size , hash )
+  addBanner(name , uri , url, ip ,  size , hash , board )
   updateCreationCooldown(ip)
-  response := mailer.SendBannerEmail( name , file_base64 , url , uri , header.Filename  )
+  response := mailer.SendBannerEmail( name , file_base64 , url , uri , header.Filename , board  )
   if response != "Sent"{
     c.JSON(200, gin.H{"warn" : "Banner Added "})
   } else{
@@ -350,6 +412,9 @@ func RemoveBanner(c *gin.Context){
   }
 }
 
+// we assume these are safe because of the middleware
+// and because tokens can be rejected from restarting the program
+
 /* File: ModeratorActivityController */
 func GetAllBanners(c *gin.Context){
   entires := getAllEntries()
@@ -357,51 +422,70 @@ func GetAllBanners(c *gin.Context){
 }
 /* File: ModeratorActivityController */
 func BanUser(c *gin.Context){
-  target := getGet(c , "target")
-  hard := getGet(c , "hard")
+  var mod_json ModAction
+  c.BindJSON(&mod_json)
+  name := getGet(c , "name")
+  // verify in case mod has been removed but token still authenticates as one
+  mod_level := checkModLevel(name)
+  if mod_level == "none"{
+    c.JSON(401 , gin.H{"error": "You are not a moderator"})
+    return
+  }
+
   ip := c.ClientIP()
-  if target == "" || hard == "" {
+  if mod_json.Target == "" || mod_json.Hard == nil {
     c.JSON(401 , gin.H{"error": "Fields missing"})
     return
   }
-  hard_ban , err := strconv.Atoi(hard)
-  if err != nil{
-    panic(err)
-  }
-  createNewBan(target, hard_ban , ip)
+  createNewBan(mod_json.Target, *mod_json.Hard , ip)
 
   hard_ban_str := ""
-  if hard_ban == 1 {
+  if *mod_json.Hard == 1 {
     hard_ban_str = "hard"
   } else{
     hard_ban_str = "soft"
   }
-  c.JSON(200 , gin.H{"log": "User " + target + " was " + hard_ban_str + " banned"})
+  c.JSON(200 , gin.H{"log": "User " + mod_json.Target + " was " + hard_ban_str + " banned"})
 }
 /* File: ModeratorActivityController */
 func DeleteAll(c *gin.Context){
-  target := getGet(c , "target")
-  if target == "" {
+  var mod_json ModAction
+  c.BindJSON(&mod_json)
+  name := getGet(c , "name")
+  // verify in case mod has been removed but token still authenticates as one
+  mod_level := checkModLevel(name)
+  if mod_level == "none"{
+    c.JSON(401 , gin.H{"error": "You are not a moderator"})
+    return
+  }
+  if mod_json.Target == "" {
     c.JSON(401 , gin.H{"error": "Fields missing"})
     return
   }
-  removeAllUserImages(target)
-  removeUserFromDatabase(target)
+  removeAllUserImages(mod_json.Target)
+  removeUserFromDatabase(mod_json.Target)
 
-  c.JSON(200 , gin.H{"log": "User " + target + " was purged"})
+  c.JSON(200 , gin.H{"log": "User " + mod_json.Target + " was purged"})
 }
 /* File: ModeratorActivityController */
 func DeleteIndividual(c *gin.Context){
+  var mod_json ModAction
+  c.BindJSON(&mod_json)
   name := getGet(c , "name")
-  uri := getGet(c , "uri")
-  if name == "" || uri == ""{
+  // verify in case mod has been removed but token still authenticates as one
+  mod_level := checkModLevel(name)
+  if mod_level == "none"{
+    c.JSON(401 , gin.H{"error": "You are not a moderator"})
+    return
+  }
+  if mod_json.Target == "" || mod_json.URI == ""{
     c.JSON(401 , gin.H{"error": "Fields missing"})
     return
   }
-  removeIndividualBannerFromImages(uri)
-  removeIndividualBannerFromDB(uri)
+  removeIndividualBannerFromImages(mod_json.URI)
+  removeIndividualBannerFromDB(mod_json.URI)
 
-  c.JSON(200 , gin.H{"log": name + "'s image was pruned"})
+  c.JSON(200 , gin.H{"log": mod_json.Target + "'s image was pruned"})
 }
 
 /* MISC FUNCTIONS */

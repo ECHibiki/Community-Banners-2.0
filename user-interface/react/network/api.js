@@ -55,11 +55,30 @@ export class APICalls{
 				return err.response.data ? err.response.data : error_404;
 			});
 	}
-	static callCreateNewAd(imagefile, url, hidden_url){
+	static testDonorToken(token){
+		var post_data = {"token":token};
+		return axios.post(host_addr + '/api/user/token', post_data, {headers:
+			{
+				"accept":"application/json", "content-type":"application/json"
+			}
+			})
+			.then(function(res){
+				return res.data;
+			})
+			.catch(function(err){
+				if(!err.response){
+					console.log(err);
+					return error_404;
+				}
+				return err.response.data ? err.response.data : error_404;
+			});
+	}
+	static callCreateNewAd(imagefile, url, hidden_url , board){
 		var post_data = new FormData();
 		post_data.append("image", imagefile);
 		post_data.append("url", url);
 		post_data.append("size", hidden_url);
+		post_data.append("board", board);
 		return axios.post(host_addr + '/api/user/details', post_data, {headers:
 			{
 				"accept":"application/json", "content-type":"multipart/form-data",
@@ -161,7 +180,7 @@ export class APICalls{
 			});
 	}
 	static callModRemoveIndividualAds(name, uri, url){
-		var post_data = {"name": name, "uri":uri, "url":url};
+		var post_data = {"target": name, "uri":uri, "url":url};
 		return axios.post(host_addr + '/api/user/mod/individual', post_data, {headers:
 			{
 				"accept":"application/json",
@@ -180,7 +199,7 @@ export class APICalls{
 			});
 	}
 	static callModRemoveAllUserAds(name){
-		var post_data = {"name": name};
+		var post_data = {"target": name};
 		return axios.post(host_addr + '/api/user/mod/purge', post_data, {headers:
 			{
 				"accept":"application/json",
