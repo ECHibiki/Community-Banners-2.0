@@ -24,7 +24,6 @@ func getRandomEntry(name string,  size string , ip string , board string) []map[
   if size != "wide" && size != "small"{
     size = "%"
   }
-  fmt.Println(size)
   filter := ""
   var filter_args []interface{}
   if board == ""{
@@ -51,7 +50,6 @@ func getRandomEntry(name string,  size string , ip string , board string) []map[
      ORDER BY RAND() LIMIT 1;
     ` , filter )
   query_arr := append(filter_args , []interface{}{ ip , name , size ,}...)
-  fmt.Println(query , query_arr)
   result , err := bannerdb.Query(query , query_arr)
   if err != nil{
     panic(err)

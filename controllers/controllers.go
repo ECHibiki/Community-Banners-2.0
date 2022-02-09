@@ -141,37 +141,37 @@ func CreateNewUser(c *gin.Context){
   c.BindJSON(&login)
 
   if len(login.Name) > 30 {
-    c.JSON( 401 , gin.H{"error": "Name should not be longer than 30 characters"});
+    c.JSON( 400 , gin.H{"error": "Name should not be longer than 30 characters"});
     return
   }
   if login.Name == ""{
-    c.JSON( 401 , gin.H{"error": "Insert a name"});
+    c.JSON( 400 , gin.H{"error": "Insert a name"});
     return
   }
   if len(login.Pass) < 5 {
-    c.JSON( 401 , gin.H{"error": "Password is too short"});
+    c.JSON( 400 , gin.H{"error": "Password is too short"});
     return
   }
   if login.Pass != login.Pass_Confirm{
-    c.JSON( 401 , gin.H{"error": "Passwords do not match"});
+    c.JSON( 400 , gin.H{"error": "Passwords do not match"});
     return
   }
   if login.Pass == ""{
-    c.JSON( 401 , gin.H{"error": "Insert a password"});
+    c.JSON( 400 , gin.H{"error": "Insert a password"});
     return
   }
 
   if !validateIPCreation(ip){
-    c.JSON( 401 , gin.H{"error": "Too many accounts"});
+    c.JSON( 400 , gin.H{"error": "Too many accounts"});
     return
   }
   updateIPCreation(ip)
 
   error_message := addNewUserToDB(login.Name, login.Pass);
   if error_message == ""{
-    c.JSON( 200 , gin.H{"log": "Successfully Created"});
+    c.JSON( 201 , gin.H{"log": "Successfully Created"});
   } else{
-    c.JSON( 401 , gin.H{"error": error_message});
+    c.JSON( 400 , gin.H{"error": error_message});
   }
 }
 /* File: UserCreationController */
@@ -187,15 +187,15 @@ func LoginUser(domain string) gin.HandlerFunc{
     c.BindJSON(&login)
     ip := c.ClientIP()
     if login.Name == ""{
-      c.JSON( 401 , gin.H{"error": "Insert a name"});
+      c.JSON( 400 , gin.H{"error": "Insert a name"});
       return
     }
     if login.Pass == ""{
-      c.JSON( 401 , gin.H{"error": "Insert a password"});
+      c.JSON( 400 , gin.H{"error": "Insert a password"});
       return
     }
     if checkHardBanned(login.Name , ip) {
-      c.JSON( 401 , gin.H{"error": "You've been banned..."});
+      c.JSON( 403 , gin.H{"error": "You've been banned..."});
       return
     }
     // N attempts every Xsec for given IP
@@ -214,7 +214,7 @@ func LoginUser(domain string) gin.HandlerFunc{
     if login.Token != ""{
       is_donor = checkIsDonor(login.Token)
       if !is_donor{
-        c.JSON( 401 , gin.H{"error": "Your token was not entered correctly"});
+        c.JSON( 400 , gin.H{"error": "Your token was not entered correctly"});
         return
       }
     }
@@ -253,7 +253,7 @@ func TestToken(domain string) gin.HandlerFunc{
     login.Token  = strings.TrimSpace(login.Token)
     is_donor := checkIsDonor(login.Token)
     if !is_donor{
-      c.JSON( 401 , gin.H{"error": "Your token was not entered correctly"});
+      c.JSON( 400 , gin.H{"error": "Your token was not entered correctly"});
       return
     }
 
@@ -295,7 +295,7 @@ func CreateBanner(c *gin.Context){
 
   image , header , err:= c.Request.FormFile("image")
   if err != nil {
-    c.JSON(401 , gin.H{"error": "File not set or is invalid"})
+    c.JSON(400 , gin.H{"error": "File not set or is invalid"})
     return
   }
   defer image.Close()
@@ -304,13 +304,13 @@ func CreateBanner(c *gin.Context){
     mime != "image/jpeg" &&
     mime != "image/png" &&
     mime != "image/gif"{
-      c.JSON(401 , gin.H{"error": "File should be jpeg, png or gif"})
+      c.JSON(400 , gin.H{"error": "File should be jpeg, png or gif"})
       return
   }
 
   fsize := header.Size
   if fsize > controller_settings.MaxFileSize {
-    c.JSON(401 , gin.H{"error": "Filesize is larger than " + strconv.Itoa(int(controller_settings.MaxFileSize / (1000 * 1000))) + " MB"})
+    c.JSON(400 , gin.H{"error": "Filesize is larger than " + strconv.Itoa(int(controller_settings.MaxFileSize / (1000 * 1000))) + " MB"})
     return
   }
 
@@ -330,19 +330,19 @@ func CreateBanner(c *gin.Context){
       }
     }
     if !found {
-      c.JSON(401 , gin.H{"error": "The given board is invalid"})
+      c.JSON(400 , gin.H{"error": "The given board is invalid"})
       return
     }
   }
 
   if size == "wide" && url == ""{
-    c.JSON(401 , gin.H{"error": "URL Required" })
+    c.JSON(400 , gin.H{"error": "URL Required" })
     return
   }
   //https://stackoverflow.com/questions/3809401/what-is-a-good-regular-expression-to-match-a-url
   url_regex := regexp.MustCompile(`https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)`)
   if size== "wide" && !url_regex.Match([]byte(url)){
-    c.JSON(401 , gin.H{"error": "URL does not look valid" })
+    c.JSON(400 , gin.H{"error": "URL does not look valid" })
     return
   }
 
@@ -360,7 +360,7 @@ func CreateBanner(c *gin.Context){
     } else{
       dim_str = "(" +  strconv.Itoa(controller_settings.WideDimensionsX) + "x" + strconv.Itoa(controller_settings.WideDimensionsY) + ")"
     }
-    c.JSON(401 , gin.H{"error": "Dimensions are incorrect" +  dim_str })
+    c.JSON(400 , gin.H{"error": "Dimensions are incorrect" +  dim_str })
     return
   }
 
@@ -369,7 +369,7 @@ func CreateBanner(c *gin.Context){
   uniqueness_response , hash := checkUniqueBanner(tmp_location)
   if uniqueness_response != ""{
     // os.Remove(tmp_location)
-    c.JSON(401 , gin.H{"error": uniqueness_response})
+    c.JSON(400 , gin.H{"error": uniqueness_response})
     return
   }
 
@@ -386,9 +386,9 @@ func CreateBanner(c *gin.Context){
   updateCreationCooldown(ip)
   response := mailer.SendBannerEmail( name , file_base64 , url , uri , header.Filename , board  )
   if response != "Sent"{
-    c.JSON(200, gin.H{"warn" : "Banner Added "})
+    c.JSON(201, gin.H{"warn" : "Banner Added "})
   } else{
-    c.JSON(200, gin.H{"log" : "Banner Added "})
+    c.JSON(201, gin.H{"log" : "Banner Added "})
   }
 }
 
@@ -398,7 +398,7 @@ func RemoveBanner(c *gin.Context){
   var removal UserRemoval
   c.BindJSON(&removal)
   if !affirmImageIsOwned(name , removal.URI) {
-    c.JSON(401 , gin.H{
+    c.JSON(403 , gin.H{
       "error" : "This banner is not owned",
     })
     return
@@ -459,7 +459,7 @@ func DeleteAll(c *gin.Context){
     return
   }
   if mod_json.Target == "" {
-    c.JSON(401 , gin.H{"error": "Fields missing"})
+    c.JSON(400 , gin.H{"error": "Fields missing"})
     return
   }
   removeAllUserImages(mod_json.Target)
@@ -479,7 +479,7 @@ func DeleteIndividual(c *gin.Context){
     return
   }
   if mod_json.Target == "" || mod_json.URI == ""{
-    c.JSON(401 , gin.H{"error": "Fields missing"})
+    c.JSON(400 , gin.H{"error": "Fields missing"})
     return
   }
   removeIndividualBannerFromImages(mod_json.URI)
