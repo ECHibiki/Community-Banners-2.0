@@ -14,6 +14,7 @@ import (
 type GinSettings struct{
   Domain string
   RejectCreation bool
+  ReleaseMode string
 }
 
 var gin_engine *gin.Engine
@@ -21,6 +22,7 @@ var gin_settings GinSettings
 
 func Init(port string){
   fmt.Println("\nGin Interface initialization...")
+
 
   setting_json_bytes, err := ioutil.ReadFile("./settings/gin-settings.json")
   if err != nil{
@@ -30,8 +32,9 @@ func Init(port string){
 
   // NGINX handles statics such as .html, .js, .css and image media
 
-  // TODO: for donors allow board banners to be added, do this on the UI too
+  gin.SetMode(gin_settings.ReleaseMode)
   gin_engine = gin.Default()
+  gin_engine.SetTrustedProxies([]string{"127.0.0.1"})
   gin_engine.Use(JWTDecodeMiddleware())
   {
     gin_engine.GET("/banner", controllers.GenerateAdPage)
