@@ -10,3 +10,5 @@ const ui_settings = {
   version_no: "2.0.0",
   extra_info: "<p>Please help contribute to Kissu.moe's growth<br/><a href='https://kissu.moe/donations'>Click here for more information.</a></p>"
 }
+
+module.exports =  ui_settings;
