@@ -8,6 +8,8 @@ import {PatreonBanner} from "../image/patreon-banner";
 import {LoadingSpinner} from "../image/loading-spinner";
 import {LoginContainer} from "../container/login";
 import {UserContainer} from "../container/user";
+import {AllContainer} from "../container/all";
+import {ThemeToggle} from "../page/themes";
 export class MasterPage extends Component{
 	constructor(props){
 		super(props);
@@ -40,6 +42,7 @@ export class MasterPage extends Component{
 		if(this.state.auth == undefined){
 			return(<div id="master-waiting"  className="main-container">
 							<div id="upper-master-login" className="upper-container">
+							 <ThemeToggle />
 							 <TopHeader />
 							 <SampleBanner />
 							</div>
@@ -53,6 +56,7 @@ export class MasterPage extends Component{
 			// possible context API on swapPage
 			return(<div id="master-login" className="main-container">
 							<div id="upper-master-login" className="upper-container">
+								<ThemeToggle />
 							  <TopHeader />
 							  <SampleBanner />
 							</div>
@@ -72,6 +76,7 @@ export class MasterPage extends Component{
 		else{
 			return(<div id="master-user" className="main-container">
 							<div id="upper-master-user" className="upper-container">
+							<ThemeToggle />
 							<TopHeader />
 							<SampleBanner />
 							</div>

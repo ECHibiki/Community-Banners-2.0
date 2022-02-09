@@ -5,11 +5,13 @@ import {HelperText} from "../information/helper";
 import {SampleBanner} from "../image/sample-banner";
 import {PatreonBanner} from "../image/patreon-banner";
 import {AllContainer} from "../container/all";
+import {ThemeToggle} from "../page/themes";
 export class AllPage extends Component{
 	render(){
 			return(
 				<div id="master-all" className="main-container">
 					<div id="upper-master-all" className="upper-container">
+						<ThemeToggle />
 					  <TopHeader />
 					  <SampleBanner />
 					</div>

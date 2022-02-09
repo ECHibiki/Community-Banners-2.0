@@ -1,5 +1,4 @@
 {
-  "RedirectDomain":"localhost",
   "AccountInterval": 60,
   "BannerInterval": 60,
   "AttemptInterval": 60,

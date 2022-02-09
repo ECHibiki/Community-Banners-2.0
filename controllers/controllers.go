@@ -19,7 +19,6 @@ import (
 // a few misc shared functions at the bottom of this file
 
 type ControllerSettings struct{
-  RedirectDomain string
   // minutes
   AccountInterval int64
   BannerInterval int64

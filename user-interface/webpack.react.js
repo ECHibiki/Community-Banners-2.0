@@ -8,7 +8,7 @@ module.exports = function(_env, argv) {
 
   return {
     devtool: isDevelopment && "cheap-module-source-map",
-    entry:[ "./react/index.js" , "./sass/app.scss"],
+    entry:[ "./react/index.js" , "./sass/app.scss" , "./sass/dark.scss"],
     output: {
       path: path.resolve(__dirname, "../public"),
       filename: "js/app.js",
@@ -46,7 +46,7 @@ module.exports = function(_env, argv) {
           use: [
               {
                   loader: 'file-loader',
-                  options: { outputPath: '../public/css/', name: 'app.css'}
+                  options: { outputPath: '../public/css/', name: '[name].css'}
               },
               'sass-loader'
           ]
