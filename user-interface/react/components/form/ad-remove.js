@@ -8,7 +8,7 @@ export class AdRemovalForm extends Component{
 		this.state = {display: "none", height: "10em"};
 	}
 	render(){
-		return(<div style={{display: this.state.display, height: this.state.height}} className="ad-remove-form">
+		return(<div style={{display: this.state.display, maxHeight: this.state.height}} className="ad-remove-form basic-form">
 			<form>
 				<input type="hidden" id="r-uri" required/>
 				<input type="hidden" id="r-url" required/>
@@ -26,7 +26,7 @@ export class AdRemovalButton extends Component{
 
 	render(){
 		return (<div className="ad-remove">
-			<Popup trigger={<button type="button" className="btn btn-danger btn-sm">Remove</button>}>
+			<Popup trigger={<button type="button" className="btn btn-secondary btn-sm">Remove</button>}>
   			{close => (
   				<div>
     				<p className="text-danger">Are you sure you want to delete this?</p>
@@ -40,11 +40,15 @@ export class AdRemovalButton extends Component{
 export class AdRemovalAPIButton extends Component{
 	constructor(props){
 		super(props);
-		this.state = {info_text:"", info_class:"", cursor:"pointer"};
+		this.state = {info_text:"", info_class:"", cursor:"pointer", click_num:0 };
 		this.RemoveAd = this.RemoveAd.bind(this);
 	}
 
 	async RemoveAd(){
+		if(this.state.click_num != 1){
+			this.setState({click_num : 1});
+			return;
+		}
 		const uri=this.props.ad_src;
 		const url= this.props.url;
 		this.setState({cursor:"progress"});
@@ -69,7 +73,8 @@ export class AdRemovalAPIButton extends Component{
 	render(){
 		return (
       <div className="ad-remove">
-				<button type="button" className="btn btn-secondary" style={{cursor:this.state.cursor}} onClick={this.RemoveAd}>Remove</button>
+				<button type="button" className="btn btn-danger" style={{cursor:this.state.cursor}} onClick={this.RemoveAd}>Remove</button><br/>
+				<small>Click Twice ( {this.state.click_num} )</small>
   			<p className={"err-field " + this.state.info_class}  id="cr-info-field" >{this.state.info_text}</p>
 			</div>);
 	}

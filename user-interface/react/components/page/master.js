@@ -38,8 +38,8 @@ export class MasterPage extends Component{
 
 	render(){
 		if(this.state.auth == undefined){
-			return(<div id="master-waiting">
-							<div id="upper-master-login">
+			return(<div id="master-waiting"  className="main-container">
+							<div id="upper-master-login" className="upper-container">
 							 <TopHeader />
 							 <SampleBanner />
 							</div>
@@ -51,8 +51,8 @@ export class MasterPage extends Component{
 		}
 		else if(!this.state.auth){
 			// possible context API on swapPage
-			return(<div id="master-login">
-							<div id="upper-master-login">
+			return(<div id="master-login" className="main-container">
+							<div id="upper-master-login" className="upper-container">
 							  <TopHeader />
 							  <SampleBanner />
 							</div>
@@ -70,8 +70,8 @@ export class MasterPage extends Component{
 					);
 		}
 		else{
-			return(<div id="master-user">
-							<div id="upper-master-user">
+			return(<div id="master-user" className="main-container">
+							<div id="upper-master-user" className="upper-container">
 							<TopHeader />
 							<SampleBanner />
 							</div>

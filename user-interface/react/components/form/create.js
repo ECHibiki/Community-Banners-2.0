@@ -16,7 +16,7 @@ export class CreationForm extends Component{
 		this.submit_ref = createRef();
 	}
 	render(){
-		return(<div style={{visibility: this.props.visibility, opacity:this.props.opacity, height: this.props.height}} id="create-form">
+		return(<div style={{visibility: this.props.visibility, opacity:this.props.opacity, maxHeight: this.props.height}} className="create-form basic-form">
 				<div className="form-group">
 					<label htmlFor="name-c">UserName</label>
 					<input className="form-control" id="name-c" placeholder="insert username"

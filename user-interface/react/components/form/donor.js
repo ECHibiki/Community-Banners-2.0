@@ -36,7 +36,7 @@ export class DonorPanel extends Component{
     this.setState({token_value:e.target.value});
   }
 	render(){
-		return <div id="donor-panel" style={{visibility: this.props.visibility, height: this.props.height, opacity: this.props.opacity}}>
+		return <div style={{visibility: this.props.visibility, maxHeight: this.props.height, opacity: this.props.opacity}} className="donor-panel basic-form">
 			<label for="donor-auth">Authorize Donor Status</label>
 			<input type="url" class="form-control" id="donor-auth" value={this.state.token_value}
       onChange={this.updateToken}

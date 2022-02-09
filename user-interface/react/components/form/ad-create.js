@@ -38,7 +38,7 @@ export class AdCreationForm extends Component{
 	}
 
 	render(){
-		return(<div style={{visibility: this.props.visibility, height: this.props.height, opacity: this.props.opacity}} id="ad-create-form">
+		return(<div style={{visibility: this.props.visibility, maxHeight: this.props.height, opacity: this.props.opacity}} className="ad-create-form basic-form">
 		<label>Banner Type:&nbsp;</label>
 			<label><input id="img-size-wide" type="radio" name="size" onClick={()=>this.setState({hide_url:false})} defaultChecked/>&nbsp;Wide</label>&nbsp;
 			<label><input id="img-size-small" type="radio" name="size" onClick={()=>this.setState({hide_url:true})}/>&nbsp;Small</label><br/>

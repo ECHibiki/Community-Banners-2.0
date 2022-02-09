@@ -95,7 +95,7 @@ export class ModBanButton extends Component{
 			<Popup trigger={<button type="button" className="btn btn-info btn-sm">Ban</button>}>
 			{close => (
 				<div>
-				<p className="text-info">Shadow realm this user or hard ban user?</p>
+				<p className="">Shadow ban this user or hard ban user?</p>
 				<ModSoftBanAPIButton updateDetailsCallback={this.props.updateDetailsCallback}  onClickCallBack={close} ad_src={this.props.ad_src} url={this.props.url} name={this.props.name}/>
 				<ModHardBanAPIButton updateDetailsCallback={this.props.updateDetailsCallback}  onClickCallBack={close} ad_src={this.props.ad_src} url={this.props.url} name={this.props.name}/>
 				</div>
@@ -108,12 +108,16 @@ export class ModBanButton extends Component{
 export class ModIndividualRemovalAPIButton extends Component{
 	constructor(props){
 		super(props);
-		this.state = {info_text:"", info_class:""};
+		this.state = {info_text:"", info_class:"", click_num:0};
 
 		this.RemoveAd = this.RemoveAd.bind(this);
 	}
 
 	async RemoveAd(){
+		if(this.state.click_num != 1){
+			this.setState({click_num : 1});
+			return;
+		}
 		const uri=this.props.ad_src;
 		const url= this.props.url;
 		const name = this.props.name;
@@ -136,7 +140,8 @@ export class ModIndividualRemovalAPIButton extends Component{
 	}
 
 	render(){
-		return (<div className="ad-remove-soft"><button type="button" className="btn btn-danger btn-sm" onClick={this.RemoveAd}>Remove Selected</button>
+		return (<div className="ad-remove-soft"><button type="button" className="btn btn-danger btn-sm" onClick={this.RemoveAd}>Remove Selected</button><br/>
+			<small>Click Twice ( {this.state.click_num} )</small>
 			<p className={this.state.info_class}  id="mi-info-field" >{this.state.info_text}</p>
 			</div>);
 	}
@@ -144,12 +149,16 @@ export class ModIndividualRemovalAPIButton extends Component{
 export class ModCompleteRemovalAPIButton extends Component{
 	constructor(props){
 		super(props);
-		this.state = {info_text:"", info_class:""};
+		this.state = {info_text:"", info_class:"", click_num:0};
 
 		this.RemoveAd = this.RemoveAd.bind(this);
 	}
 
 	async RemoveAd(){
+		if(this.state.click_num != 1){
+			this.setState({click_num:1});
+			return;
+		}
 		const name = this.props.name;
 
 		var response = await APICalls.callModRemoveAllUserAds(name);
@@ -170,7 +179,9 @@ export class ModCompleteRemovalAPIButton extends Component{
 	}
 
 	render(){
-		return (<div id="ad-remove-hard"><button type="button" className="btn btn-danger btn-sm" onClick={this.RemoveAd}>Remove All</button>
+		return (<div id="ad-remove-hard">
+			<button type="button" className="btn btn-danger btn-sm" onClick={this.RemoveAd}>Remove All</button><br/>
+			<small>Click Twice ( {this.state.click_num} )</small>
 			<p className={this.state.info_class}  id="mc-info-field" >{this.state.info_text}</p>
 			</div>);
 	}

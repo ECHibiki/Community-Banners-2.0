@@ -8,8 +8,8 @@ import {AllContainer} from "../container/all";
 export class AllPage extends Component{
 	render(){
 			return(
-				<div id="master-all">
-					<div id="upper-master-all">
+				<div id="master-all" className="main-container">
+					<div id="upper-master-all" className="upper-container">
 					  <TopHeader />
 					  <SampleBanner />
 					</div>

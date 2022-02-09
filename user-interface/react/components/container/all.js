@@ -51,7 +51,7 @@ export class AllContainer extends Component{
 			return (
 				<div id="all-container">
 					<h2>All Banners</h2>
-					<span className="all-link"><Link to="/">Back</Link></span><br/>
+					<span className="nav-link"><Link to="/">Back</Link></span><br/>
 
 					<Sort sortChange={this.sortByOnChange} filterChange={this.filterOnChange} filter={this.state.filter}
 						sort={this.state.sorting}/>

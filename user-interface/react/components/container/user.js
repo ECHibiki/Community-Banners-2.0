@@ -26,13 +26,13 @@ export class UserContainer extends Component{
 
 	AdCreateOnClick(){
 		if(this.state.AdCVisibility == "unset")
-			this.setState({AdCVisibility:"initial", AdCHeight:"max-content", AdCOpacity:"1"});
+			this.setState({AdCVisibility:"initial", AdCHeight:"50em", AdCOpacity:"1"});
 		else
 			this.setState({AdCVisibility:"unset", AdCHeight:"0em", AdCOpacity:"0"});
 	}
 	DonorAuthOnClick(){
 		if(this.state.DonorCVisibility == "unset")
-			this.setState({DonorCVisibility:"initial", DonorCHeight:"max-content", DonorCOpacity:"1"});
+			this.setState({DonorCVisibility:"initial", DonorCHeight:"50em", DonorCOpacity:"1"});
 		else
 			this.setState({DonorCVisibility:"unset", DonorCHeight:"0", DonorCOpacity:"0"});
 	}
@@ -59,7 +59,7 @@ export class UserContainer extends Component{
 
 	render(){
 		if(this.state.mod){
-			var mod_button = (<span className="mod-link"><Link to="/mod">Mod Mode</Link></span>);
+			var mod_button = (<span className="nav-link"><Link to="/mod">Mod Mode</Link></span>);
 		}
 		return (<div id="user-container">
 				<h2>Your Banners</h2>

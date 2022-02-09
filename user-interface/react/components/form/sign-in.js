@@ -19,7 +19,7 @@ export class SignInForm extends Component{
 		this.submit_ref = createRef();
 	}
 	render(){
-		return(<div style={{visibility: this.props.visibility, opacity: this.props.opacity, height: this.props.height}} id="sign-form">
+		return(<div style={{visibility: this.props.visibility, opacity: this.props.opacity, maxHeight: this.props.height}} className="sign-form basic-form">
 				<div className="form-group">
 					<label htmlFor="name-si">UserName</label>
 					<input className="form-control" id="name-si" placeholder="insert username"

@@ -1,5 +1,5 @@
-$small_px: 1300px;
-$mobile_px: 500px;
+$small_px: 950px;
+$mobile_px: 450px;
 $small_width: 95vw;
 
 @mixin master-body-standards {
@@ -26,18 +26,12 @@ hr{
 
 #master{
 	&-login, &-waiting{
-		width:50vw;
 		@include master-body-standards();
-		@media (max-width:$small_px){
-			width:$small_width;
-		}
+
 	}
 	&-user, &-all {
-		width:70vw;
 		@include master-body-standards();
-		@media (max-width:$small_px){
-			width:$small_width;
-		}
+
 
 	}
 
@@ -58,9 +52,6 @@ hr{
 		background-color:white;
 		#top-head{
 			padding-left:1vh;
-			h1{
-				font-size:3.5vh;
-			}
 		}
 		#patreon{
 			height:16vh;
@@ -100,12 +91,6 @@ hr{
 }
 
 #login-container, #user-container, #ad-create-container,#all-container, #mod-container{
-	h2{
-		display: inline;
-		font-size:4vh;
-		padding-left:1vw;
-	}
-
 	#si-button-container, #ad-button-container, #all-container, #mod-container , #donor-button-container{
 		background-color:#e1e1e1;
 		width: 50%;
@@ -113,6 +98,7 @@ hr{
 		display: block;
 		padding:2vh;
 		border: 0.1px solid #c6c6c6;
+		min-width: 400px;
 		button{
 			margin: auto;
 			display: block;
@@ -122,7 +108,8 @@ hr{
 				width:90%;
 			}
 		}
-		@media (max-width:$small_px){
+		@media (max-width:$mobile_px){
+			min-width: unset;
 			width:100%;
 		}
 	}
@@ -150,18 +137,17 @@ hr{
 }
 #ad-board-c {
   display: block;
-  padding-top: 1.5px;
   height: 28px;
 }
 
-#create-form, #sign-form, #ad-create-form{
+.create-form, .sign-form, .ad-create-form , .donor-panel{
 	background-color:#d9d5d5;
 	padding: 0.5vh 1vw;
 	overflow: hidden;
-	transition:height 0.5s, opacity 0.5s;
+	transition:max-height 0.4s, opacity 0.5s;
 	border: #bbb 0.1px dashed;
 }
-#ad-create-form{
+.ad-create-form{
 	padding: 0.5vh 1vw;
 	width: 70%;
 	margin: auto;
@@ -185,9 +171,12 @@ hr{
 #details-table, #ad-details-table, #mod-details-table{
 	table{
 		margin: 2rem auto;
-		width: 75%;
+		width:90%;
 		@media (max-width:$small_px){
-        		width:90%;
+			width:95%
+		}
+		@media (max-width:$mobile_px){
+			width:98%
 		}
 	}
 	th{
@@ -278,10 +267,6 @@ hr{
     }
 }
 
-#donation{
-	padding: 2em;
-}
-
 #footer{
 	margin:auto;
 	display:block;
@@ -294,13 +279,6 @@ hr{
 	margin: auto;
 	max-width:100%;
 	border:none
-}
-
-.form-group{
-	input, label{
-		font-size:1em;
-		color: #313131;
-	}
 }
 
 .code{
@@ -320,7 +298,7 @@ hr{
 	font-size: 1.1em;
 }
 
-.all-link, .mod-link{
+.all-link, .nav-link{
 	float: right;
 	font-size: 1.5em;
 	padding-right: 0.5em;
@@ -329,9 +307,6 @@ hr{
 	}
 }
 
-#donation{
-	word-wrap: anywhere;
-}
 #select-fields{
 	display:block;
 	margin:auto;
