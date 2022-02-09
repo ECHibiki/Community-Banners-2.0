@@ -10,4 +10,4 @@ Kissu.moe has many Twig templates that would need to be ported. This is a test o
 It's good at making REST API. React applications use this a lot.
 ## Damn, this is really good and I think you should be paid
 See my donations page if this is true: <a href="https://kissu.moe/donations">Here</a><br/>
-Alternatively consider making a thread on <a href="kissu.moe">kissu.moe</a> and possitively engage with the community. None of that toxic BS that imageboards are known for.
+Alternatively consider making a thread on <a href="https://kissu.moe">kissu.moe</a> and possitively engage with the community. None of that toxic BS that imageboards are known for.
