@@ -99,12 +99,13 @@ func GetLimitedInfo(c *gin.Context){
   ad_data := getLimitedEntries(name , ip);
   ad_gin_h := []gin.H{}
   for _ , ad := range ad_data{
+	clicks , _ := strconv.Atoi(ad["clicks"])
     gh := gin.H{
       "url": ad["url"],
       "uri": ad["uri"],
       "name":ad["name"],
       "size":ad["size"],
-      "clicks":ad["clicks"],
+      "clicks":clicks,
       "board":ad["board"],
     }
     ad_gin_h = append(ad_gin_h , gh)
