@@ -120,12 +120,14 @@ func RedirectSiteRequest(c *gin.Context){
   file := getParam(c , "f")
 
   if site == ""{
-      c.HTML(404, "", "Non-existing URL")
+      c.Header("Content-Type", "text/html")
+      c.String(404 , "Non-existing URL")
       return
   }
 
   if !checkURIExists(file){
-    c.HTML(404, "", "Non-existing URI")
+    c.Header("Content-Type", "text/html")
+    c.String(404 , "Non-existing URI")
     return
   }
 
