@@ -213,7 +213,7 @@ func getBase64(path string ) string{
 func addBanner(name string, file_path string, url string, ip string,  size string,
   hash string , board string){
   _ , err := bannerdb.Query(`
-    INSERT INTO ads VALUES (? , ? , ? , ? , ? , 0 , NULL , ? , ? )
+    INSERT INTO ads VALUES (? , ? , ? , ? , ? , 0 , ? , NULL , ? )
   ` , []interface{}{name , file_path , url , ip , size , hash , board })
   if err != nil{
     panic(err)
