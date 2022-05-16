@@ -296,6 +296,14 @@ hr{
 .popup-content{
 	text-align: center;
 	font-size: 1.1em;
+	@media (max-width: $small_px){
+		left: 0 !important;
+	}
+}
+.popup-arrow {
+	@media (max-width: $small_px){
+		display: none !important;
+	}
 }
 
 .all-link, .nav-link{
