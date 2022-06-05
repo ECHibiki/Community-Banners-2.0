@@ -20,6 +20,7 @@ import (
 
 type ControllerSettings struct{
   // minutes
+  FreeMode bool
   AccountInterval int64
   BannerInterval int64
   AttemptInterval int64
@@ -321,7 +322,7 @@ func CreateBanner(c *gin.Context){
   board := c.PostForm("board")
   name := getGet(c, "name")
 
-  if is_donor == "false" {
+  if is_donor == "false" && !controller_settings.FreeMode {
     board = ""
   } else if board != ""{
     found := false

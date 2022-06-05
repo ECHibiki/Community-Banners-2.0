@@ -1,6 +1,6 @@
 import React, { Component , createRef } from 'react';
 import {DataStore, APICalls} from '../../network/api';
-
+import {free_mode} from "../../settings"
 export class SignInButton extends Component{
 	constructor(props){
 		super(props);
@@ -11,7 +11,6 @@ export class SignInButton extends Component{
 	}
 
 }
-
 
 export class SignInForm extends Component{
 	constructor(props){
@@ -44,18 +43,18 @@ export class SignInForm extends Component{
 						}
 					placeholder="" required/>
 				</div>
-				<div className="form-group">
-					<label htmlFor="funder-si">Funder Token</label>
-					<input className="form-control" id="funder-si"
-						onKeyDown={
-							(e) => {
-								if(e.key.toLowerCase() == "enter"){
-									this.submit_ref.current.click()
+				<div style={{display: free_mode ? "none" : "unset"}} className="form-group">
+						<label htmlFor="funder-si">Funder Token</label>
+						<input className="form-control" id="funder-si"
+							onKeyDown={
+								(e) => {
+									if(e.key.toLowerCase() == "enter"){
+										this.submit_ref.current.click()
+									}
 								}
 							}
-						}
-					placeholder="(optional)Access additional features"/>
-				</div>
+						placeholder="(optional)Access additional features"/>
+					</div>
 				<SignInAPIButton ButtonRef={this.submit_ref} swapPage={this.props.swapPage}  />
 			</div>);
 	}

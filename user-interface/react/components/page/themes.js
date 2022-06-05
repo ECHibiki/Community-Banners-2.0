@@ -6,6 +6,7 @@ import {SampleBanner} from "../image/sample-banner";
 import {PatreonBanner} from "../image/patreon-banner";
 import {ModContainer} from "../container/mod";
 
+import {free_mode} from "../../settings"
 export class ThemeToggle extends Component{
 	constructor(props){
 		super(props);
@@ -15,7 +16,7 @@ export class ThemeToggle extends Component{
 		var ds = document.getElementById("dark-sheet");
 		if(window.localStorage &&
 			(window.localStorage.getItem("theme") && window.localStorage.getItem("theme") == "dark" )){
-				ds.href="/css/dark.css";
+				ds.href=`/css/dark${free_mode ? "-unlocked" : ""}.css`;
 			} else{
 				ds.href="";
 			}
@@ -27,11 +28,11 @@ export class ThemeToggle extends Component{
 						onClick={function(e){
 							var ds = document.getElementById("dark-sheet");
 							console.log(ds.href)
-							if (ds.href.indexOf("/css/dark.css") != -1){
+							if (ds.href.indexOf(`/css/dark${free_mode ? "-unlocked" : ""}.css`) != -1){
 								window.localStorage ? window.localStorage.setItem("theme" , "light"): "";
 								ds.href="";
 							} else{
-								ds.href="/css/dark.css";
+								ds.href=`/css/dark${free_mode ? "-unlocked" : ""}.css`;
 								window.localStorage ? window.localStorage.setItem("theme" , "dark") : "";
 							}
 						}}

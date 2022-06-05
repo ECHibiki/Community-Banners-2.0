@@ -8,3 +8,4 @@ export var host_addr = process.env.MIX_APP_URL;
 export var host_name = process.env.MIX_APP_HOSTNAME;
 export var version_no = process.env.MIX_VERSION_NO;
 export var extra_info = process.env.MIX_EXTRA_INFO;
+export var free_mode = process.env.MIX_FREE_MODE;

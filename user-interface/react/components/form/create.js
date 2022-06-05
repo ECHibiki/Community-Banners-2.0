@@ -1,6 +1,6 @@
 import React, { Component , createRef } from 'react';
 import {DataStore, APICalls} from '../../network/api';
-
+import {free_mode} from '../../settings';
 export class CreateButton extends Component{
 	render(){
 		return (
@@ -53,18 +53,18 @@ export class CreationForm extends Component{
 					}
 					placeholder="confirmation" required/>
 				</div>
-				<div className="form-group">
-					<label htmlFor="funder-c">Funder Token</label>
-					<input className="form-control" id="funder-c"
-						onKeyDown={
-							(e) => {
-								if(e.key.toLowerCase() == "enter"){
-									this.submit_ref.current.click()
+				<div style={{visibility: free_mode ? "hidden" : "unset"}} className="form-group">
+						<label htmlFor="funder-c">Funder Token</label>
+						<input className="form-control" id="funder-c"
+							onKeyDown={
+								(e) => {
+									if(e.key.toLowerCase() == "enter"){
+										this.submit_ref.current.click()
+									}
 								}
 							}
-						}
-					placeholder="(optional)Access additional features"/>
-				</div>
+						placeholder="(optional)Access additional features"/>
+					</div>
 
 				<CreateAPIButton ButtonRef={this.submit_ref} swapPage={this.props.swapPage}  />
 			</div>);

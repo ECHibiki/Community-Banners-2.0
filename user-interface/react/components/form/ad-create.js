@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import {DataStore, APICalls} from '../../network/api';
-import {dimensions_w, dimensions_h,dimensions_small_w, dimensions_small_h,rules,rules_small} from '../../settings'
+import {dimensions_w, dimensions_h,dimensions_small_w, dimensions_small_h,rules,rules_small,free_mode} from '../../settings'
 
 export class AdCreateButton extends Component{
 	render(){
@@ -56,8 +56,8 @@ export class AdCreationForm extends Component{
 					<input onChange={this.handleURLChange} value={this.state.url_input} type="url" pattern="/^http(|s):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]+\.[A-Z0-9+&@#\/%=~_|]+$/i" className="form-control" id="ad-url-c" placeholder="http/https urls only" />
 				</div>
 				 <div className="form-group">
-					<label htmlFor="ad-board-c">Board {!this.props.isDonor ? "(Funders only)" : ""}</label>
-					<select disabled={!this.props.isDonor} onChange={this.handleBoardChange} value={this.state.board_input} className="" id="ad-board-c" name="board">
+					<label htmlFor="ad-board-c">Board {(!this.props.isDonor && !free_mode) ? "(Funders only)" : ""}</label>
+					<select disabled={!this.props.isDonor && !free_mode} onChange={this.handleBoardChange} value={this.state.board_input} className="" id="ad-board-c" name="board">
 						<option value="" default>/all/</option>
 						<option value="qa" default>/qa/</option>
 						<option value="jp" default>/jp/</option>

@@ -11,7 +11,7 @@ module.exports = function(_env, argv) {
     entry:[ "./react/index.js" , "./sass/app.scss" , "./sass/dark.scss"],
     output: {
       path: path.resolve(__dirname, "../public"),
-      filename: "js/app.js",
+      filename: "js/app-unlocked.js",
       publicPath: "../"
     },
     plugins: [
@@ -25,7 +25,8 @@ module.exports = function(_env, argv) {
         MIX_APP_URL: UI.host_addr,
         MIX_APP_HOSTNAME:UI.host_name,
         MIX_VERSION_NO: UI.version_no,
-        MIX_EXTRA_INFO: UI.extra_info
+        MIX_EXTRA_INFO: UI.extra_info,
+        MIX_FREE_MODE: UI.free_mode
       })
     ],
     module: {
@@ -46,7 +47,7 @@ module.exports = function(_env, argv) {
           use: [
               {
                   loader: 'file-loader',
-                  options: { outputPath: '../public/css/', name: '[name].css'}
+                  options: { outputPath: '../public/css/', name: '[name]-unlocked.css'}
               },
               'sass-loader'
           ]

@@ -5,7 +5,7 @@ import {DonorPanel , DonorExtendButton} from '../form/donor';
 import {AdDetailsTable} from '../table/user-details-table';
 
 import {Link} from "react-router-dom";
-
+import {free_mode} from '../../settings';
 export class UserContainer extends Component{
 	constructor(props){
 		super(props);
@@ -70,11 +70,10 @@ export class UserContainer extends Component{
 				  <AdCreateButton onClickCallBack={this.AdCreateOnClick}/>
 				  <AdCreationForm visibility={this.state.AdCVisibility} isDonor={this.state.donor} opacity={this.state.AdCOpacity} height={this.state.AdCHeight} UpdateDetails={this.UpdateDetails}/>
 				</div>
-				{!this.state.donor && 	<div id="donor-button-container">
+				<div style={{display: free_mode ? "none" : "unset"}} id="donor-button-container">
 						<DonorExtendButton onClickCallBack={this.DonorAuthOnClick}/>
 						<DonorPanel visibility={this.state.DonorCVisibility} opacity={this.state.DonorCOpacity} height={this.state.DonorCHeight} UpdateDonator={this.UpdateDonator}/>
 					</div>
-				}
 				<AdDetailsTable adData={this.state.AdArray} updateDetailsCallback={this.UpdateDetails}/>
 			</div>)
 	}
