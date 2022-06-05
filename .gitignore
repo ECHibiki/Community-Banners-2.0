@@ -29,3 +29,6 @@ public/storage/image/
 public/storage/tmp/
 !public/storage/image/.gitkeep
 !public/storage/tmp/.gitkeep
+
+go.mod
+go.sum
