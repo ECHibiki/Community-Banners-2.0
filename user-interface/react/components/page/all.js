@@ -3,7 +3,7 @@ import {TopHeader} from "../information/header";
 import {DonatorBox} from "../information/donator";
 import {HelperText} from "../information/helper";
 import {SampleBanner} from "../image/sample-banner";
-import {PatreonBanner} from "../image/patreon-banner";
+import {DonationBanner} from "../image/donation-banner";
 import {AllContainer} from "../container/all";
 import {ThemeToggle} from "../page/themes";
 export class AllPage extends Component{
@@ -22,7 +22,7 @@ export class AllPage extends Component{
 				  <hr/>
 			    <div id="lower-master-all">
 						<DonatorBox />
-						<PatreonBanner />
+						<DonationBanner />
 						<HelperText />
 			   </div>
 			 </div>);

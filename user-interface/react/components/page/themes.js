@@ -3,7 +3,6 @@ import {TopHeader} from "../information/header";
 import {DonatorBox} from "../information/donator";
 import {HelperText} from "../information/helper";
 import {SampleBanner} from "../image/sample-banner";
-import {PatreonBanner} from "../image/patreon-banner";
 import {ModContainer} from "../container/mod";
 
 import {free_mode} from "../../settings"

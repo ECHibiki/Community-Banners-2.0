@@ -8,7 +8,7 @@ export class HelperText extends Component{
 						<p>
 							Uploaded images must be {dimensions_w}x{dimensions_h} or {dimensions_small_w}x{dimensions_small_h} and safe for work.
 							Wide banners should not be used to promote other existing social platforms or communities. Small banners must relate to Kissu in some way.
-							<em>{free_mode ? "Banners for NSFW boards may be NSFW*." : "Certain exemptions exist for donators who may submit board specific banners."}</em><br/>
+							<em> {free_mode ? "Banners for NSFW boards may be NSFW*." : "Certain exemptions exist for donators who may submit board specific banners."}</em><br/>
 							{free_mode ? "" : "If you wish to upload banners specific to a given board* you need to become a donator(see the above links for more information).\n\
 							Upon donating you will be emailed a donation reward token granting you access to this feature."}
 						</p>

@@ -3,7 +3,7 @@ import {TopHeader} from "../information/header";
 import {DonatorBox} from "../information/donator";
 import {HelperText} from "../information/helper";
 import {SampleBanner} from "../image/sample-banner";
-import {PatreonBanner} from "../image/patreon-banner";
+import {DonationBanner} from "../image/donation-banner";
 import {ModContainer} from "../container/mod";
 import {ThemeToggle } from "../page/themes";
 
@@ -22,7 +22,7 @@ export class ModPage extends Component{
 				  <hr/>
 				   <div id="lower-master-mod">
 					 	<DonatorBox />
-						<PatreonBanner />
+						<DonationBanner />
 						<HelperText />
 				   </div>
 				</div>);

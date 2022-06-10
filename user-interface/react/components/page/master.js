@@ -4,7 +4,7 @@ import {TopHeader} from "../information/header";
 import {DonatorBox} from "../information/donator";
 import {HelperText} from "../information/helper";
 import {SampleBanner} from "../image/sample-banner";
-import {PatreonBanner} from "../image/patreon-banner";
+import {DonationBanner} from "../image/donation-banner";
 import {LoadingSpinner} from "../image/loading-spinner";
 import {LoginContainer} from "../container/login";
 import {UserContainer} from "../container/user";
@@ -67,7 +67,7 @@ export class MasterPage extends Component{
 							  <hr/>
 							   <div id="lower-master-login">
 								 	<DonatorBox />
- 							  	<PatreonBanner />
+ 							  	<DonationBanner />
 									<HelperText />
 							   </div>
 							</div>
@@ -86,7 +86,7 @@ export class MasterPage extends Component{
 							</div>
 							<div id="lower-master-user">
 								{!this.state.is_donor && <><DonatorBox />
-							  <PatreonBanner /></> }
+							  <DonationBanner /></> }
 							  <HelperText />
 							</div>
 						</div>
