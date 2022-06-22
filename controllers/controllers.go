@@ -313,7 +313,7 @@ func CreateBanner(c *gin.Context){
 
   fsize := header.Size
   if fsize > controller_settings.MaxFileSize {
-    c.JSON(400 , gin.H{"error": "Filesize is larger than " + strconv.Itoa(int(controller_settings.MaxFileSize / (1000 * 1000))) + " MB"})
+    c.JSON(400 , gin.H{"error": "Filesize is larger than " + strconv.Itoa(int(controller_settings.MaxFileSize / (1024 * 1024))) + " MB"})
     return
   }
 
