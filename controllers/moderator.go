@@ -70,6 +70,15 @@ func removeIndividualBannerFromDB(uri string){
   }
 }
 
+func editIndividualBannerDB(uri string, url string){
+  _ , err := bannerdb.Query(`
+    UPDATE ads SET url = ? WHERE uri = ?;
+  ` , []interface{}{url, uri})
+  if err != nil{
+    panic(err)
+  }
+}
+
 func checkModLevel(name string) string{
   mod_get , err := bannerdb.Query(`
     SELECT fk_name , "admin" as level FROM mods

@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import {AdRemovalForm, AdRemovalButton} from '../form/ad-remove';
+import {AdEditForm, AdEditButton} from '../form/ad-edit';
 
 export class AdDetailsTable extends Component{
 	constructor(props){
@@ -14,6 +15,7 @@ export class AdDetailsTable extends Component{
 			entry['uri'] = entry['uri'].replace('public/image/', 'storage/image/');
 			entry['clicks'] = entry['size'] == 'small' ? "-" :  entry['clicks'];
 			entry['clicks'] = entry['clicks'] == undefined ? "0" : entry['clicks'];
+
 			JSX_var.push(<AdDetailsEntry updateDetailsCallback={this.props.updateDetailsCallback}
 				id={"banner-" + index} key={"banner-"+index} ad_src={entry['uri']} url={entry['url']}
 				clicks={entry['clicks']} board={entry['board'] ? entry['board'] : "*"}
@@ -33,6 +35,7 @@ export class AdDetailsTable extends Component{
 						<th className="ad-th-url">URL</th>
 						<th className="ad-th-clicks">Clicks</th>
 						<th className="ad-th-board">Board</th>
+						<th className="ad-th-edit">Edit</th>
 					</tr>
 				</thead>
 				<tbody className="">
@@ -48,16 +51,31 @@ export class AdDetailsTable extends Component{
 export class AdDetailsEntry extends Component{
 	constructor(props){
 		super(props);
+		this.state = {isEditing: false, inputValue: this.props.url, url: this.props.url};
+		this.ToggleEditAd = this.ToggleEditAd.bind(this);
+		this.handleInputChange = this.handleInputChange.bind(this);
+	}
+
+	async ToggleEditAd(newURL){
+		console.log("new URL: " + newURL);
+		this.setState({ url: newURL });
+		this.setState({ isEditing: !this.state.isEditing });
+	}
+
+	async handleInputChange(newValue) {
+		this.setState({ inputValue: newValue });
 	}
 
 	render(){
+		const { isEditing, inputValue, url } = this.state;
 		return(
 			<tr id={this.props.id} className="">
-				<td className="ad-td-del"><AdRemovalButton updateDetailsCallback={this.props.updateDetailsCallback}  ad_src={this.props.ad_src} url={this.props.url} /></td>
+				<td className="ad-td-del"><AdRemovalButton updateDetailsCallback={this.props.updateDetailsCallback}  ad_src={this.props.ad_src} url={url} /></td>
 				<td className="ad-td-img"><a href={this.props.ad_src} ><img src={this.props.ad_src}/></a></td>
-				<td className={"ad-td-url " + (this.props.url ? "" : "url-absent")}>{this.props.url ? <a href={this.props.url}>{this.props.url}</a> : "[-]"}</td>
+				<td className={"ad-td-url" + (url ? "" : " url-absent")}>{url ? <AdEditForm updateDetailsCallback={this.props.updateDetailsCallback}  ad_src={this.props.ad_src} url={url} isEditing={isEditing} inputValue={inputValue} onInputChange={this.handleInputChange} /> : "[-]"}</td>
 				<td className="ad-td-clicks">{this.props.clicks}</td>
 				<td className="ad-td-board">{this.props.board}</td>
+				<td className={"ad-td-edit" + (url ? "" : " url-absent")}> {url ? <AdEditButton updateDetailsCallback={this.props.updateDetailsCallback}  ad_src={this.props.ad_src} url={url} isEditing={isEditing} ToggleEditAd={this.ToggleEditAd} inputValue={inputValue} /> : "[-]"} </td>
 			</tr>);
 	}
 }

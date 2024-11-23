@@ -15,7 +15,7 @@ import(
   _ "image/png"
   _ "image/gif"
 
-  "github.com/alessio/shellescape"
+  "al.essio.dev/pkg/shellescape"
   "github.com/ECHibiki/Community-Banners-2.0/bannerdb"
 )
 
@@ -73,7 +73,7 @@ func getImageDimensions(mem_image multipart.File) (int , int){
 
 func checkUniqueBanner(tmp_path string) (string , string){
   safe_name := shellescape.Quote(tmp_path)
-  blockhash_cmd := exec.Command("blockhash", safe_name)
+  blockhash_cmd := exec.Command("blockhash", safe_name) // can be "safely" replaced with md5sum if you don't care about collisions
   hash_result, err := blockhash_cmd.Output()
 
   // var err_buffer , output_buffer bytes.Buffer
@@ -145,6 +145,18 @@ func removeAdSQL(name string, uri string){
 fmt.Println(`
   DELETE FROM ads WHERE uri = ? AND fk_name = ?
 ` , []interface{}{uri , name})
+  if err != nil{
+    panic(err)
+  }
+}
+
+func editAdSQL(name string, uri string, url string){
+  _ , err := bannerdb.Query(`
+    UPDATE ads SET url = ? WHERE uri = ? AND fk_name = ?;
+  ` , []interface{}{url, uri , name})
+fmt.Println(`
+  UPDATE ads SET url = ? WHERE uri = ? AND fk_name = ?;
+` , []interface{}{url, uri , name})
   if err != nil{
     panic(err)
   }

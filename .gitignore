@@ -11,6 +11,9 @@
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
 
+# Community Banners 2.0 binary
+cb2
+
 # Dependency directories (remove the comment below to include it)
 # vendor/
 

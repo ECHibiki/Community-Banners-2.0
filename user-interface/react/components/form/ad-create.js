@@ -90,7 +90,7 @@ export class AdCreateAPIButton extends Component{
 		var size = document.getElementById("img-size").value;
 		var board = document.getElementById("ad-board-c").value;
 		this.setState({cursor:"progress"});
-		var response = await APICalls.callCreateNewAd(image, url,size , board);
+		var response = await APICalls.callCreateNewAd(image, url, size, board);
 		this.setState({cursor:"pointer"});
 		if("error" in response){
 			this.setState({
