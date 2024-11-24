@@ -217,6 +217,45 @@ export class APICalls{
 			});
 	}
 
+	static callEditUserAds(uri, url){
+		var post_data = {"uri":uri, "url":url};
+		return axios.post(host_addr + '/api/user/edit', post_data, {headers:
+			{
+				"accept":"application/json",
+				"authorization": "bearer " + DataStore.getAuthToken()
+			}
+			})
+			.then(function(res){
+				return res.data;
+			})
+			.catch(function(err){
+				if(!err.response){
+					console.log(err);
+					return error_404;
+				}
+				return err.response.data ? err.response.data : error_404;
+			});
+	}
+	static callModEditIndividualAds(name, uri, url){
+		var post_data = {"target": name, "uri":uri, "url":url};
+		return axios.post(host_addr + '/api/user/mod/edit', post_data, {headers:
+			{
+				"accept":"application/json",
+				"authorization": "bearer " + DataStore.getAuthToken()
+			}
+			})
+			.then(function(res){
+				return res.data;
+			})
+			.catch(function(err){
+				if(!err.response){
+					console.log(err);
+					return error_404;
+				}
+				return err.response.data ? err.response.data : error_404;
+			});
+	}
+
 	static callModBanUser(name,hard){
 		var post_data = {"target": name,"hard": hard};
 		return axios.post(host_addr + '/api/user/mod/ban', post_data, {headers:

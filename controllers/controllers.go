@@ -42,8 +42,9 @@ type Login struct{
   Token string `json:"token"`
 }
 
-type UserRemoval struct{
+type UserAction struct{
   URI string `json:"uri"`
+  URL string `json:"url"`
 }
 
 type ModAction struct {
@@ -400,7 +401,7 @@ func CreateBanner(c *gin.Context){
 /* File: ConfidentialInfoController */
 func RemoveBanner(c *gin.Context){
   name := getGet(c , "name")
-  var removal UserRemoval
+  var removal UserAction
   c.BindJSON(&removal)
   if !affirmImageIsOwned(name , removal.URI) {
     c.JSON(403 , gin.H{
@@ -412,6 +413,24 @@ func RemoveBanner(c *gin.Context){
     removeAdSQL(name , removal.URI)
     c.JSON(200 , gin.H{
       "log" : "Banner removed",
+    })
+    return
+  }
+}
+
+func EditBanner(c *gin.Context){
+  name := getGet(c , "name")
+  var edit UserAction
+  c.BindJSON(&edit)
+  if !affirmImageIsOwned(name , edit.URI) {
+    c.JSON(403 , gin.H{
+      "error" : "This banner is not owned",
+    })
+    return
+  } else{
+    editAdSQL(name , edit.URI, edit.URL)
+    c.JSON(200 , gin.H{
+      "log" : "Banner URL updated",
     })
     return
   }
@@ -491,6 +510,25 @@ func DeleteIndividual(c *gin.Context){
   removeIndividualBannerFromDB(mod_json.URI)
 
   c.JSON(200 , gin.H{"log": mod_json.Target + "'s image was pruned"})
+}
+
+func EditIndividualBanner(c *gin.Context){
+  var mod_json ModAction
+  c.BindJSON(&mod_json)
+  name := getGet(c , "name")
+  // verify in case mod has been removed but token still authenticates as one
+  mod_level := checkModLevel(name)
+  if mod_level == "none"{
+    c.JSON(401 , gin.H{"error": "You are not a moderator"})
+    return
+  }
+  if mod_json.Target == "" || mod_json.URI == ""{
+    c.JSON(400 , gin.H{"error": "Fields missing"})
+    return
+  }
+  editIndividualBannerDB(mod_json.URI, mod_json.URL)
+
+  c.JSON(200 , gin.H{"log": mod_json.Target + "'s banner URL was updated"})
 }
 
 /* MISC FUNCTIONS */

@@ -59,6 +59,7 @@ func Init(port string) {
 			logged_group.GET("details", controllers.AccessInfo)
 			logged_group.POST("details", controllers.CreateBanner)
 			logged_group.POST("removal", controllers.RemoveBanner)
+			logged_group.POST("edit", controllers.EditBanner)
 			logged_group.POST("token", controllers.TestToken(gin_settings.Domain))
 
 			mod_group := logged_group.Group("mod/")
@@ -68,6 +69,7 @@ func Init(port string) {
 				mod_group.POST("ban", controllers.BanUser)
 				mod_group.POST("purge", controllers.DeleteAll)
 				mod_group.POST("individual", controllers.DeleteIndividual)
+				mod_group.POST("edit", controllers.EditIndividualBanner)
 			}
 		}
 
