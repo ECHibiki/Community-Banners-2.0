@@ -26,7 +26,8 @@ module.exports = function(_env, argv) {
         MIX_APP_HOSTNAME:UI.host_name,
         MIX_VERSION_NO: UI.version_no,
         MIX_EXTRA_INFO: UI.extra_info,
-        MIX_FREE_MODE: UI.free_mode
+        MIX_FREE_MODE: UI.free_mode,
+        MIX_BOARDS: UI.boards,
       })
     ],
     module: {

@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import {DataStore, APICalls} from '../../network/api';
-import {dimensions_w, dimensions_h,dimensions_small_w, dimensions_small_h,rules,rules_small,free_mode} from '../../settings'
+import {dimensions_w, dimensions_h,dimensions_small_w, dimensions_small_h,rules,rules_small,free_mode, boards} from '../../settings'
 
 export class AdCreateButton extends Component{
 	render(){
@@ -58,19 +58,13 @@ export class AdCreationForm extends Component{
 				 <div className="form-group">
 					<label htmlFor="ad-board-c">Board {(!this.props.isDonor && !free_mode) ? "(Funders only)" : ""}</label>
 					<select disabled={!this.props.isDonor && !free_mode} onChange={this.handleBoardChange} value={this.state.board_input} className="" id="ad-board-c" name="board">
-						<option value="" default>/all/</option>
-						<option value="qa" default>/qa/</option>
-						<option value="jp" default>/jp/</option>
-						<option value="win" default>/win/</option>
-						<option value="cry" default>/cry/</option>
-						<option value="poll" default>/poll/</option>
-						<option value="b" default>/b/</option>
-						<option value="f" default>/f/</option>
-						<option value="ec" default>/ec/(NSFW)</option>
-						<option value="trans" default>/trans/(NSFW)</option>
-						<option value="test" default>/test/(NSFW)</option>
+						{
+							boards.map(function(b){
+								return <option value={b[0]} default>{b[1]}</option>;
+							})
+						}
 					</select>
-					<small>NSFW banners are not viewable on the public banner listings</small>
+					<small>NSFW banners are not viewable on the public banner listings or /all/</small>
 				</div>
 				<AdCreateAPIButton UnsetFormFields={this.unsetFormFields} UpdateDetails={this.props.UpdateDetails}/>
 			</div>);

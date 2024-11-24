@@ -311,6 +311,7 @@ func CreateBanner(c *gin.Context){
       return
   }
 
+
   fsize := header.Size
   if fsize > controller_settings.MaxFileSize {
     c.JSON(400 , gin.H{"error": "Filesize is larger than " + strconv.Itoa(int(controller_settings.MaxFileSize / (1024 * 1024))) + " MB"})
@@ -377,7 +378,8 @@ func CreateBanner(c *gin.Context){
   }
 
   file_base64 := getBase64(tmp_location)
-  filename := generateHashedFileName(tmp_location)
+  ext := strings.Replace(mime , "image/", "", -1)
+  filename := generateHashedFileName(tmp_location) + "." + ext
   uri := "storage/image/" + filename
   err = os.Rename(tmp_location , controller_settings.PublicPath + uri)
   if err != nil{
