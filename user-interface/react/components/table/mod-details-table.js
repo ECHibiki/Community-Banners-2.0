@@ -30,6 +30,7 @@ export class ModDetailsTable extends Component{
 						<th className="ad-th-img">Image</th>
 						<th className="ad-th-url">URL</th>
 						<th className="ad-th-ban">Ban State</th>
+						<th className="ad-th-edit">Edit</th>
 					</tr>
 				</thead>
 				<tbody className="">
@@ -43,9 +44,23 @@ export class ModDetailsTable extends Component{
 export class ModDetailsEntry extends Component{
 	constructor(props){
 		super(props);
+		this.state = {isEditing: false, inputValue: this.props.url, url: this.props.url};
+		this.ToggleEditAd = this.ToggleEditAd.bind(this);
+		this.handleInputChange = this.handleInputChange.bind(this);
+	}
+
+	async ToggleEditAd(newURL){
+		console.log("new URL: " + newURL);
+		this.setState({ url: newURL });
+		this.setState({ isEditing: !this.state.isEditing });
+	}
+
+	async handleInputChange(newValue) {
+		this.setState({ inputValue: newValue });
 	}
 
 	render(){
+		const { isEditing, inputValue, url } = this.state;
 		var ban_str = "-";;
 		if(this.props.ban == 1){
 			var ban_str =  "Hardban";
@@ -59,9 +74,42 @@ export class ModDetailsEntry extends Component{
 
 				<td className="ad-td-name">{this.props.name}</td>
 				<td className="ad-td-img"><a href={this.props.ad_src} ><img src={this.props.ad_src}/></a></td>
-				<td className="ad-td-url"><a href={this.props.url}>{this.props.url}</a></td>
+				<td className={"ad-td-url" + (url ? "" : " url-absent")}>{url ? <ModEditForm updateDetailsCallback={this.props.updateDetailsCallback}  ad_src={this.props.ad_src} url={url} isEditing={isEditing} inputValue={inputValue} onInputChange={this.handleInputChange} /> : "[-]"}</td>
 				<td className="ad-td-ban">{ban_str}</td>
+				
+				<td className={"ad-td-edit" + (url ? "" : " url-absent")}> {url ? <ModEditButton updateDetailsCallback={this.props.updateDetailsCallback}  ad_src={this.props.ad_src} url={url} isEditing={isEditing} ToggleEditAd={this.ToggleEditAd} inputValue={inputValue} name={this.props.name} /> : "[-]"} </td>
 			</tr>);
+	}
+}
+
+
+export class ModEditForm extends Component{
+	constructor(props) {
+		super(props);
+		this.state = { inputValue: this.props.url };
+		this.handleInputChange = this.handleInputChange.bind(this);
+	}
+
+	async handleInputChange(event) {
+		this.setState({ inputValue: event.target.value });
+   		this.props.onInputChange(event.target.value);
+	}
+
+	async componentDidUpdate(prevProps) {
+		if (prevProps.isEditing && !this.props.isEditing) {
+			// Reset inputValue when editing is canceled
+			this.setState({ inputValue: this.props.url });
+		}
+	}
+
+	render(){
+		const { isEditing } = this.props;
+		const { inputValue } = this.state;
+		return(<div>
+			{!isEditing ? (<a href={this.props.url}>{this.props.url}</a>) : (
+				<input type="url" pattern="/^http(|s):\/\/[-A-Z0-9+&amp;@#\/%?=~_|!:,.;]+\.[A-Z0-9+&amp;@#\/%=~_|]+$/i" class="form-control" placeholder="http/https urls" value={inputValue} onChange={this.handleInputChange} required></input>
+			)} 
+  			</div>);
 	}
 }
 
@@ -101,6 +149,25 @@ export class ModBanButton extends Component{
 				</div>
 			)}
 			</Popup></div>);
+	}
+}
+export class ModEditButton extends Component{
+	constructor(props) {
+		super(props);
+
+		this.ToggleEditAd = this.props.ToggleEditAd.bind(this);
+	}
+
+	render(){
+		const { isEditing, ToggleEditAd, inputValue, url } = this.props;
+		return (<div>
+			{!isEditing ? (<div className="ad-edit"><button type="button" className="btn btn-secondary btn-sm" onClick={() => this.ToggleEditAd(url)}>Edit</button></div>) : (
+				<div className="ad-edit-pair">
+					<ModEditAPIButton updateDetailsCallback={this.props.updateDetailsCallback} ad_src={this.props.ad_src} inputValue={inputValue} ToggleEditAd={ToggleEditAd} url={this.props.url} name={this.props.name} />
+					<div className="ad-cancel"><button type="button" class="btn btn-danger btn-sm" onClick={() => this.ToggleEditAd(url)}>Cancel</button></div>
+				</div>
+			)} 
+  			</div>);
 	}
 }
 
@@ -257,5 +324,43 @@ export class ModHardBanAPIButton extends Component{
 		return (<div id="ban-hard"><button type="button" className="btn btn-info btn-sm" onClick={this.HardBan}>Hard Ban</button>
 			<p className={this.state.info_class}  id="hb-info-field" >{this.state.info_text}</p>
 			</div>);
+	}
+}
+export class ModEditAPIButton extends Component{
+	constructor(props){
+		super(props);
+		this.state = {inputValue: this.props.inputValue };
+		this.EditAd = this.EditAd.bind(this);
+	}
+
+	async EditAd(){
+		const name = this.props.name;
+		const uri = this.props.ad_src;
+		const url = this.props.inputValue; // Use the current input value
+		this.setState({cursor:"progress"});
+		var response = await APICalls.callModEditIndividualAds(name, uri, url);
+		//console.log("URI: " + uri + ", URL: " + url);
+		this.setState({cursor:"pointer"});
+		if("error" in response){
+			this.setState({
+				info_text:response['error'],
+				info_class:"text-danger"
+			});
+		}
+		else if("warn" in response){
+			this.setState({info_text:response['warn'], info_class:"text-warning bg-dark"});
+		}
+		else{
+			this.setState({info_text:response['log'], info_class:"text-success"});
+			this.props.updateDetailsCallback();
+			this.props.ToggleEditAd(url);
+		}
+		
+	}
+
+	render(){
+		return (
+		<div className="ad-save"><button type="button" class="btn btn-success btn-sm" onClick={this.EditAd}>Save</button></div>
+		);
 	}
 }
